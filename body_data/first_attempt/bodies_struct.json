@@ -1,0 +1,29 @@
+"1682697196952": {
+        "is_new": true,
+        "is_tracked": true,
+        "timestamp": 1682697196952932801,
+        "body_list": [
+            {
+                "id": 0,
+                "unique_object_id": "4890580e-4084-4b0e-9369-705a6e75ed60",
+                "tracking_state": "OFF",
+                "action_state": "IDLE",
+                "position": [],
+                "velocity": [],
+                "bounding_box_2d": [],
+                "confidence": ,
+                "bounding_box": [],
+                "dimensions": [],
+                "keypoint_2d": [],
+                "keypoint": [],
+                "keypoint_cov": [],
+                "head_bounding_box_2d": [],
+                "head_bounding_box": [],
+                "head_position": [],
+                "keypoint_confidence": [],
+                "local_position_per_joint": [],
+                "local_orientation_per_joint": [],
+                "global_root_orientation": []
+            }
+        ]
+    }
