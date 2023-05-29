@@ -1,0 +1,8 @@
+# Ignore multimedia files
+*.mp4
+*.mov
+*.png
+*.tak
+*.csv
+*.fbx
+*.bvh
