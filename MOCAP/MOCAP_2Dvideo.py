@@ -86,9 +86,7 @@ def main():
     #
     # out.release()
 
-    os.system('ffmpeg -framerate 60 -i frame_%d.png -c:v libx264 -r 30 -pix_fmt yuv420p output2D_'+file_to_read+'.mp4 -y')
-
-
+    os.system('ffmpeg -framerate 60 -i frame_%d.png -c:v libx264 -r 30 -pix_fmt yuv420p '+file_to_read+'MOCAP.mp4 -y')
 
     # Remove all the files with pattern 'frame_*.png'
     print("Removing frames")

@@ -58,7 +58,7 @@ joint_numbers34 = {v: k for k, v in joint_names34.items()}
 file_to_read = 'Squat2'
 
 # Load the JSON file
-with open('../body_data/'+file_to_read+'.json', 'r') as f:
+with open('../body_data/first_attempt/'+file_to_read+'.json', 'r') as f:
     data = json.load(f)
 
 tracking_state = []
@@ -183,7 +183,7 @@ for i in range(len(vectors)):
 #
 # out.release()
 
-os.system('ffmpeg -framerate 60 -i frame_%d.png -c:v libx264 -r 30 -pix_fmt yuv420p output2D_'+file_to_read+'-Pose-OR-Thresh.mp4 -y')
+os.system('ffmpeg -framerate 60 -i frame_%d.png -c:v libx264 -r 30 -pix_fmt yuv420p '+file_to_read+'_compute-pose.mp4 -y')
 
 import glob
 

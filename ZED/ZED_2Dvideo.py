@@ -17,7 +17,7 @@ def main():
         exit(1)
 
     # Load the JSON file
-    with open('../body_data/first_attempt/'+file_to_read+'.json', 'r') as f:
+    with open('../body_data/second_attempt/'+file_to_read+'.json', 'r') as f:
         data = json.load(f)
 
     tracking_state = []
@@ -99,9 +99,7 @@ def main():
     #
     # out.release()
 
-    os.system('ffmpeg -framerate 60 -i frame_%d.png -c:v libx264 -r 30 -pix_fmt yuv420p output2D_'+file_to_read+'.mp4 -y')
-
-
+    os.system('ffmpeg -framerate 60 -i frame_%d.png -c:v libx264 -r 30 -pix_fmt yuv420p '+file_to_read+'ZED.mp4 -y')
 
     # Remove all the files with pattern 'frame_*.png'
     print("Removing frames")
