@@ -2,7 +2,7 @@ import optitrack.csv_reader as csv_reader
 
 take = csv_reader.Take()
 
-take.readCSV("groundTruth.csv")
+take.readCSV("../body_data/second_attempt/groundTruth.csv")
 
 for label, body in take.rigid_bodies.items():
     print("Rigid Body:", label)

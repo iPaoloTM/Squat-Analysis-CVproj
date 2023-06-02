@@ -96,6 +96,8 @@ def read_skeleton(file_name, frame):
             for body_part in body['body_list']:
                 skeleton.append(body_part['keypoint'])
 
+    print(skeleton)
+
     return np.array(skeleton[0])
 
 def compute_bone_length(joint1, joint2):

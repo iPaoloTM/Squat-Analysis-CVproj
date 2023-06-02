@@ -4,20 +4,13 @@ import json
 import sys
 import glob
 import sys
+import cv2
+import os
 
-def main():
-
-    file_to_read=''
-
-    if len(sys.argv) > 1:
-        file_to_read = sys.argv[1]
-        #print("First argument:", first_argument)
-    else:
-        print("No file name provided.")
-        exit(1)
+def read_skeleton(file_name):
 
     # Load the JSON file
-    with open('../body_data/second_attempt/'+file_to_read+'.json', 'r') as f:
+    with open('../body_data/second_attempt/'+file_name+'ZED.json', 'r') as f:
         data = json.load(f)
 
     tracking_state = []
@@ -30,20 +23,10 @@ def main():
             tracking_state.append(body_part['tracking_state'])
             action_state.append(body_part['action_state'])
 
-    keypoints = np.array(keypoints)
+    return np.array(keypoints),tracking_state,action_state
 
-    print(keypoints.shape)
+def plot_skeletons(vectors,tracking_state,action_state):
 
-    # Create a list of 2D vectors
-    vectors = []
-    for frame in keypoints:
-        frame_vectors = []
-        for point in frame:
-            x, y = point[0], point[1]
-            frame_vectors.append([x, y])
-        vectors.append(frame_vectors)
-
-    # Set up the plot
     fig, ax = plt.subplots()
     ax.invert_yaxis()
 
@@ -51,7 +34,7 @@ def main():
 
     completed_images=0
 
-    colors = ['b'] * keypoints.shape[1]  # Initialize all points as blue
+    colors = ['b'] * 34
     #pelvis, left hip, right hip, left knee and right knee will be red
     colors[0]  = 'r'
     colors[18] = 'r'
@@ -78,9 +61,26 @@ def main():
         sys.stdout.write(f"\rPlotting data: {percentage}%")
         sys.stdout.flush()
 
-    # Create the video from the frames
-    import cv2
-    import os
+def main():
+
+    if len(sys.argv) > 1:
+        file_name = sys.argv[1]
+    else:
+        print("No file name provided.")
+        exit(1)
+
+    keypoints,tracking_state,action_state=read_skeleton(file_name)
+
+    # Create a list of 2D vectors
+    vectors = []
+    for frame in keypoints:
+        frame_vectors = []
+        for point in frame:
+            x, y = point[0], point[1]
+            frame_vectors.append([x, y])
+        vectors.append(frame_vectors)
+
+    plot_skeletons(vectors,tracking_state,action_state)
 
     print("")
     print("Building video...")
@@ -92,21 +92,14 @@ def main():
         size = (width,height)
         img_array.append(img)
 
-    # out = cv2.VideoWriter('output.mp4', cv2.VideoWriter_fourcc(*'mp4v'), 15, size)
-    #
-    # for i in range(len(img_array)):
-    #     out.write(img_array[i])
-    #
-    # out.release()
-
-    os.system('ffmpeg -framerate 60 -i frame_%d.png -c:v libx264 -r 30 -pix_fmt yuv420p '+file_to_read+'ZED.mp4 -y')
+    os.system('ffmpeg -framerate 60 -i frame_%d.png -c:v libx264 -r 30 -pix_fmt yuv420p '+file_name+'ZED.mp4 -y')
 
     # Remove all the files with pattern 'frame_*.png'
     print("Removing frames")
     for file in glob.glob('frame_*.png'):
         os.remove(file)
 
-    os.system('open output2D_'+file_to_read+'.mp4')
+    os.system('open output2D_'+file_name+'ZED.mp4')
 
 if __name__ == '__main__':
     main()

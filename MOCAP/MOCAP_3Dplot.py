@@ -6,34 +6,25 @@ from matplotlib.colors import Normalize
 import json
 import sys
 
-def main():
-    if len(sys.argv) > 2:
-        file_to_read = sys.argv[1]
-        frame_number = sys.argv[2]
-    else:
-        print("Not enough arguments")
-        exit(1)
-
-    with open('../body_data/second_attempt/'+file_to_read+'MOCAP.json', 'r') as f:
+def read_skeleton(file_name, frame):
+    with open('../body_data/second_attempt/'+file_name+'MOCAP.json', 'r') as f:
         data = json.load(f)
 
-    frame_data = data[int(frame_number)]
+    frame_data = data[int(frame)]
     body_data = frame_data
 
-    # keypoints = np.array(keypoints)
-    # print(keypoints)
     keypoints=[]
     for joint in body_data['keypoints']:
         keypoints.append(joint['Position'])
 
-    keypoints = np.array(keypoints)
+    return np.array(keypoints)
 
-    print(keypoints)
+def plot_skeleton(skeleton):
 
     # split the points into x, y, z coordinates
-    x = [p[0] for p in keypoints]
-    y = [p[1] for p in keypoints]
-    z = [p[2] for p in keypoints]
+    x = [p[0] for p in skeleton]
+    y = [p[1] for p in skeleton]
+    z = [p[2] for p in skeleton]
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
@@ -50,6 +41,18 @@ def main():
     ax.invert_yaxis()
 
     plt.show()
+
+def main():
+    if len(sys.argv) > 2:
+        file_name = sys.argv[1]
+        frame = sys.argv[2]
+    else:
+        print("Not enough arguments")
+        exit(1)
+
+    keypoints = read_skeleton(file_name,frame)
+
+    plot_skeleton(keypoints)
 
 if __name__ == '__main__':
     main()
