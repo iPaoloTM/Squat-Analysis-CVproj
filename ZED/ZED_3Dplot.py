@@ -8,7 +8,7 @@ import glob
 import sys
 
 def read_skeleton(file_name, frame):
-    with open('../body_data/first_attempt/'+file_name+'.json', 'r') as f:
+    with open('../body_data/'+file_name+'.json', 'r') as f:
         data = json.load(f)
 
     keypoints = []
@@ -33,12 +33,26 @@ def plot_skeleton(skeleton):
     ax.set_xlabel('X Label')
     ax.set_ylabel('Y Label')
     ax.set_zlabel('Z Label')
-    ax.set_xlim([-0.5, 1])
-    ax.set_ylim([-2, -0.5])
-    ax.set_zlim([-4.5, -3.5])
+    ax.set_xlim([-0.6, 0.6])
+    ax.set_ylim([-1.5, 0.8])
+    ax.set_zlim([-0.5, 0.5])
     ax.view_init(azim=-90, elev=90)
 
     plt.show()
+
+import numpy as np
+
+def center_skeleton(skeleton):
+
+    pelvis_position = skeleton[0]
+
+    # Compute the displacement vector
+    displacement_vector = -pelvis_position
+
+    for i in range(len(skeleton)):
+        skeleton[i] += displacement_vector
+
+    return skeleton
 
 def main():
 
@@ -50,6 +64,8 @@ def main():
         exit(1)
 
     keypoints = read_skeleton(file_name,frame)
+    print(keypoints)
+    keypoints = center_skeleton(keypoints)
     print(keypoints)
 
     plot_skeleton(keypoints)

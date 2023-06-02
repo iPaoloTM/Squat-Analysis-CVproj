@@ -10,7 +10,7 @@ import os
 def read_skeleton(file_name):
 
     # Load the JSON file
-    with open('../body_data/second_attempt/'+file_name+'ZED.json', 'r') as f:
+    with open('../body_data/'+file_name+'.json', 'r') as f:
         data = json.load(f)
 
     tracking_state = []
@@ -51,6 +51,8 @@ def plot_skeletons(vectors,tracking_state,action_state):
 
         ax.set_xlabel('X Label')
         ax.set_ylabel('Y Label')
+        ax.set_xlim([-0.6, 0.6])
+        ax.set_ylim([-1.5, 0.8])
         ax.set_title(f'Frame {i}-'+tracking_state[i]+'-'+action_state[i])
         # Save the plot as an image
         plt.savefig(f'frame_{i}.png')

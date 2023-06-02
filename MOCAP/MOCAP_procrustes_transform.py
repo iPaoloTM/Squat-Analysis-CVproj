@@ -52,7 +52,7 @@ def plot_skeletons2(skeleton1, skeleton2, skeleton3, skeleton4, title):
     ax1.set_zlabel('Z')
     ax1.set_xlim([-0.8, 0.8])
     ax1.set_ylim([-0.8, 0.8])
-    ax1.set_zlim([0, 1.8])
+    ax1.set_zlim([-1.8, 0.8])
     ax1.legend()
 
     # Plotting the second pair of skeletons
@@ -70,9 +70,9 @@ def plot_skeletons2(skeleton1, skeleton2, skeleton3, skeleton4, title):
     ax2.set_xlabel('X')
     ax2.set_ylabel('Y')
     ax2.set_zlabel('Z')
-    ax2.set_xlim([-0.8, 0.8])
-    ax2.set_ylim([-0.8, 0.8])
-    ax2.set_zlim([0, 1.8])
+    ax2.set_xlim([-0.4, 0.4])
+    ax2.set_ylim([-0.4, 0.4])
+    ax2.set_zlim([-0.7, 0.5])
     ax2.legend()
 
     plt.suptitle(title)
@@ -80,7 +80,7 @@ def plot_skeletons2(skeleton1, skeleton2, skeleton3, skeleton4, title):
 
 
 def read_skeleton(file_name, frame):
-    with open('../body_data/second_attempt/'+file_name+'MOCAP.json', 'r') as f:
+    with open('../body_data/'+file_name+'.json', 'r') as f:
         data = json.load(f)
 
     frame_data = data[int(frame)]
@@ -92,6 +92,18 @@ def read_skeleton(file_name, frame):
         skeleton.append(joint['Position'])
 
     return np.array(skeleton)
+
+def center_skeleton(skeleton):
+
+    pelvis_position = skeleton[0]
+
+    # Compute the displacement vector
+    displacement_vector = -pelvis_position
+
+    for i in range(len(skeleton)):
+        skeleton[i] += displacement_vector
+
+    return skeleton
 
 def main():
     if len(sys.argv) > 4:
@@ -106,6 +118,9 @@ def main():
 
     skeleton1 = read_skeleton(file_skeleton1, frame_skeleton1)
     skeleton2 = read_skeleton(file_skeleton2, frame_skeleton2)
+
+    skeleton1 = center_skeleton(skeleton1)
+    skeleton2 = center_skeleton(skeleton2)
 
     # Padding the smaller skeleton with zeros to match the shape of the larger skeleton
     max_points = max(skeleton1.shape[0], skeleton2.shape[0])
@@ -136,7 +151,8 @@ def main():
     lower_body_skeleton1=skeleton1[lower_body_indices]
     lower_body_skeleton2=skeleton2[lower_body_indices]
 
-    #plot_skeletons(lower_body_skeleton1,lower_body_skeleton2,"Lower body Skeletons")
+    lower_body_skeleton1 = center_skeleton(lower_body_skeleton1)
+    lower_body_skeleton2 = center_skeleton(lower_body_skeleton2)
 
     lower_body_skeleton1_2d = lower_body_skeleton1.reshape(7, 3)
     lower_body_skeleton2_2d = lower_body_skeleton2.reshape(7, 3)

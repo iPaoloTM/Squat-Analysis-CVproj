@@ -7,7 +7,7 @@ import sys
 
 def read_skeletons(file_name):
 
-    with open('../body_data/second_attempt/'+file_to_read+'MOCAP.json', 'r') as f:
+    with open('../body_data/'+file_to_read+'.json', 'r') as f:
         data = json.load(f)
 
     # Extract the "keypoint" vectors

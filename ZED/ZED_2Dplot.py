@@ -7,7 +7,7 @@ import sys
 import json
 
 def read_skeleton(file_name, frame):
-    with open('../body_data/first_attempt/'+file_name+'.json', 'r') as f:
+    with open('../body_data/'+file_name+'.json', 'r') as f:
         data = json.load(f)
 
     keypoints = []

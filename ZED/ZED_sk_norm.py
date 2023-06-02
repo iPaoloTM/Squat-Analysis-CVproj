@@ -88,7 +88,7 @@ def plot_skeletons2(skeleton1, skeleton2, skeleton3, skeleton4, title):
 def read_skeleton(file_name, frame):
     skeleton=[]
     # Load the second JSON file
-    with open('../body_data/second_attempt/'+file_name+'ZED.json', 'r') as f:
+    with open('../body_data/'+file_name+'.json', 'r') as f:
         data = json.load(f)
 
     for i,body in enumerate(data.values()):

@@ -4,7 +4,7 @@ import json
 from matplotlib import cm
 
 # load the JSON file
-with open('../body_data/first_attempt/bodies0.json', 'r') as f:
+with open('../body_data/bodies0.json', 'r') as f:
     data = json.load(f)
 
 # Extract the "keypoint" vectors

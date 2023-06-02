@@ -14,7 +14,7 @@ n_ts, sz = 1000, 34
 def read_skeletal_trajectories(file1, file2):
 
     # load the JSON file
-    with open('../body_data/second_attempt/'+file1+'ZED.json', 'r') as f:
+    with open('../body_data/'+file1+'.json', 'r') as f:
         data = json.load(f)
 
     # Extract the "keypoint" vectors
@@ -25,7 +25,7 @@ def read_skeletal_trajectories(file1, file2):
     keypoints1 = np.array(keypoints)
 
     # load the JSON file
-    with open('../body_data/second_attempt/'+file2+'ZED.json', 'r') as f:
+    with open('../body_data/'+file2+'ZED.json', 'r') as f:
         data = json.load(f)
 
     # Extract the "keypoint" vectors

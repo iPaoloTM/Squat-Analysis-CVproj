@@ -7,7 +7,7 @@ import json
 import sys
 
 def read_skeleton(file_name, frame):
-    with open('../body_data/second_attempt/'+file_name+'MOCAP.json', 'r') as f:
+    with open('../body_data/'+file_name+'.json', 'r') as f:
         data = json.load(f)
 
     frame_data = data[int(frame)]
@@ -20,6 +20,9 @@ def read_skeleton(file_name, frame):
     return np.array(keypoints)
 
 def plot_skeleton(skeleton):
+
+    print(skeleton.shape)
+    print(skeleton)
 
     # split the points into x, y, z coordinates
     x = [p[0] for p in skeleton]
@@ -34,13 +37,25 @@ def plot_skeleton(skeleton):
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
-    ax.set_xlim([-0.8, 0.8])
-    ax.set_ylim([-0.8, 0.8])
-    ax.set_zlim([0, 1.8])
+    ax.set_xlim([-0.4, 1])
+    ax.set_ylim([-0.4, 1])
+    ax.set_zlim([-1.8, 0.8])
     #ax.view_init(azim=-90, elev=90)
     ax.invert_yaxis()
 
     plt.show()
+
+def center_skeleton(skeleton):
+
+    pelvis_position = skeleton[0]
+
+    # Compute the displacement vector
+    displacement_vector = -pelvis_position
+
+    for i in range(len(skeleton)):
+        skeleton[i] += displacement_vector
+
+    return skeleton
 
 def main():
     if len(sys.argv) > 2:
@@ -51,6 +66,8 @@ def main():
         exit(1)
 
     keypoints = read_skeleton(file_name,frame)
+
+    keypoints = center_skeleton(keypoints)
 
     plot_skeleton(keypoints)
 
