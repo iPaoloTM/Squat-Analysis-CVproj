@@ -8,12 +8,12 @@ import sys
 import math
 from scipy.signal import argrelextrema
 
-bones={"pelvis": [0,1], "abs": [1,2], "chest": [2,3], "neck": [3,4],
-       "Rclavicle":[3,5],"Rshoulder":[5,6],"Rarm":[6,7], "Rforearm":[7,8],
-       "Lclavicle":[3,9],"Lshoulder":[9,10], "Larm":[10,11], "Lforearm":[11,12],
-       "Rhip":[0,13], "Rthigh":[13,14],"Rshin":[14,15],
-       "Lhip":[0,16], "Lthigh":[16,17],"Lshin":[17,18],
-       "Rfoot":[15,19],"Lfoot":[18,20]}
+bones={"pelvis+abs": [0,1], "chest": [1,2], "neck": [3,26],
+       "Rclavicle":[3,11],"Rshoulder":[11,12],"Rarm":[12,13], "Rforearm":[13,14],
+       "Lclavicle":[3,4],"Lshoulder":[4,5], "Larm":[5,6], "Lforearm":[6,7],
+       "Rhip":[0,22], "Rthigh":[22,23],"Rshin":[23,24],
+       "Lhip":[0,18], "Lthigh":[18,19],"Lshin":[19,20],
+       "Rfoot":[25,33],"Rankle":[24,33],"Lfoot":[21,32],"Lankle":[20,32]}
 
 def compute_angle(x1,y1,x2,y2,x3,y3,x4,y4):
 
@@ -48,14 +48,14 @@ def compute_pose(Rarm_angle, Larm_angle, Rleg_angle, Lleg_angle, Rshoulder_angle
     # print("RARM ANGLE:",Larm_angle)
     #
     # print("RLEG ANGLE:",Rleg_angle)
-    #print("LLEG ANGLE:",Lleg_angle)
+    # print("LLEG ANGLE:",Lleg_angle)
     #
     # print("NECK_LSHOULDER ANGLE:",Lshoulder_angle)
     # print("NECK_RSHOULDER ANGLE:",Rshoulder_angle)
     #
     # print("RSHOULDER-ARM ANGLE:",Rshoulder_arm_angle)
     # print("LSHOULDER-ANGLE:",Lshoulder_arm_angle)
-    #print("PELVIS POSITION:", pelvis_pos)
+    # print("PELVIS POSITION:", )
 
 
     if (
@@ -71,8 +71,8 @@ def compute_pose(Rarm_angle, Larm_angle, Rleg_angle, Lleg_angle, Rshoulder_angle
     elif (
         abs(Rleg_angle - 90) <= 10
         and abs(Lleg_angle - 90) <= 10
-        or abs(pelvis_y-skeleton[14][1])<= 0.3
-        or abs(pelvis_y-skeleton[17][1])<= 0.3
+        or abs(pelvis_y-skeleton[23][1])<= 0.4
+        or abs(pelvis_y-skeleton[19][1])<= 0.4
     ):
         return "INTERMEDIATE"
     else:
@@ -82,13 +82,12 @@ def read_skeletons(file_name):
     with open('../body_data/'+file_name+'.json', 'r') as f:
         data = json.load(f)
 
-    keypoints = [[]]
-    for i,frame in enumerate(data):
-        keypoints.append([])
-        for joint in frame['keypoints']:
-            keypoints[i].append(joint['Position'])
+    keypoints = []
+    for body in data.values():
+        for body_part in body['body_list']:
+            keypoints.append(body_part['keypoint'])
 
-    keypoints=np.array(keypoints, dtype=object)
+    keypoints=np.array(keypoints)
 
     return keypoints
 
@@ -101,12 +100,11 @@ def plot_pelvis_position(skeletons):
     mean=[]
 
     for skeleton in skeletons:
-        if skeleton!=[]:
+        if len(skeleton)!=0:
             pelvis_positions.append(skeleton[0][1])
-            Rknee_positions.append(skeleton[14][1])
-            Lknee_positions.append(skeleton[16][1])
+            Rknee_positions.append(skeleton[23][1])
+            Lknee_positions.append(skeleton[19][1])
 
-    pelvis_positions.append(0.956)
     avg=np.mean(pelvis_positions)
 
     for i,R in enumerate(Rknee_positions):
@@ -146,7 +144,7 @@ def plot_pose(pose_state):
     plt.ylabel('Pelvis Position')
     plt.title('Pose State over Time')
     plt.legend()
-    #plt.show()
+    plt.show()
 
 def compute_keypositions(local_minima, pose_state, skeletons):
 
@@ -195,8 +193,14 @@ def compute_keypositions(local_minima, pose_state, skeletons):
                 deep_squats_index[i]=local_minimum
                 #print("the deep squat is at frame "+str(deep_squats_index[i]))
 
-    if deep_squats_index[len(deep_squats_index)-1]==0:
-        deep_squats_index.pop()
+    for i,x in enumerate(deep_squats_index):
+        if x==0:
+            deep_squats_index.pop(i)
+
+    for i,x in enumerate(deep_squats_index):
+        if x==0:
+            deep_squats_index.pop(i)
+
     print(deep_squats_index)
 
     ################################################################################
@@ -206,7 +210,7 @@ def compute_keypositions(local_minima, pose_state, skeletons):
     Lknee_positions=[]
     knee_positions=[]
     for skeleton in skeletons:
-        if skeleton!=[]:
+        if len(skeleton)!=0:
             pelvis_positions.append(skeleton[0][1])
             Rknee_positions.append(skeleton[14][1])
             Lknee_positions.append(skeleton[16][1])
@@ -231,41 +235,43 @@ def main():
 
     if len(sys.argv) > 1:
         file_name = sys.argv[1]
-        #frame = int(sys.argv[2])
     else:
         print("No file name provided.")
         exit(1)
 
     skeletons=read_skeletons(file_name)
-    # skeleton=skeletons[frame]
-    #
+    #skeleton=skeletons[frame]
+
+    #print(skeleton.shape)
+
     # # split the points into x, y, z coordinates
     # x = [p[0] for p in skeleton]
     # y = [p[1] for p in skeleton]
     # z = [p[2] for p in skeleton]
     #
     # fig = plt.figure()
-    # ax = fig.add_subplot(111) #, projection='3d')
+    # ax = fig.add_subplot(111, projection='3d')
     #
-    # ax.scatter(z,y) #,z)
+    # ax.scatter(x,y,z)
     #
     # for bone, indices in bones.items():
     #     idx1, idx2 = indices
-    #     ax.plot([z[idx1], z[idx2]], [y[idx1], y[idx2]], color='red')
+    #     ax.plot([x[idx1], x[idx2]], [y[idx1], y[idx2]], [z[idx1], z[idx2]], color='red')
     #
     # ax.set_xlabel('X')
     # ax.set_ylabel('Y')
-    # #ax.set_zlabel('Z')
+    # ax.set_zlabel('Z')
     # ax.set_title(f'Frame {frame}')
+    #
+    # plt.show()
 
-    # THESE ARE ANGLES IN THE PLANE ZY (INSTEAD OF XY)
     # skeleton[bones["Rarm"][0]][2] -> THE Z COORD OF THE FIRST POINT OF THE R ARM BONE
     # skeleton[bones["Rarm"][1]][1] -> THE Y COORD OF THE SECOND POINT OF THE R ARM BONE
 
     pose_state=[]
 
     for i,skeleton in enumerate(skeletons):
-        if (skeleton!=[] and np.array(skeleton).shape==(21,3)):
+        if (len(skeleton)!=0 and np.array(skeleton).shape==(34,3)):
             Rarm_angle=compute_angle(skeleton[bones["Rarm"][0]][2],skeleton[bones["Rarm"][0]][1],skeleton[bones["Rarm"][1]][2],skeleton[bones["Rarm"][1]][1],skeleton[bones["Rforearm"][0]][2],skeleton[bones["Rforearm"][0]][1],skeleton[bones["Rforearm"][1]][2],skeleton[bones["Rforearm"][1]][1])
             Larm_angle=compute_angle(skeleton[bones["Larm"][0]][2],skeleton[bones["Larm"][0]][1],skeleton[bones["Larm"][1]][2],skeleton[bones["Larm"][1]][1],skeleton[bones["Lforearm"][0]][2],skeleton[bones["Lforearm"][0]][1],skeleton[bones["Lforearm"][1]][2],skeleton[bones["Lforearm"][1]][1])
             Rleg_angle=compute_angle(skeleton[bones["Rthigh"][0]][2],skeleton[bones["Rthigh"][0]][1],skeleton[bones["Rthigh"][1]][2],skeleton[bones["Rthigh"][1]][1],skeleton[bones["Rshin"][0]][2],skeleton[bones["Rshin"][0]][1],skeleton[bones["Rshin"][1]][2],skeleton[bones["Rshin"][1]][1])

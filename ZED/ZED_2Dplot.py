@@ -41,7 +41,7 @@ def main():
         file_name = sys.argv[1]
         frame = int(sys.argv[2])
     else:
-        print("No file name provided.")
+        print("Not enough arguments")
         exit(1)
 
     keypoints=read_skeleton(file_name,frame)
