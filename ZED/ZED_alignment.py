@@ -144,7 +144,8 @@ def plot_pose(pose_state):
     plt.ylabel('Pelvis Position')
     plt.title('Pose State over Time')
     plt.legend()
-    plt.show()
+
+    #plt.show()
 
 def compute_keypositions(local_minima, pose_state, skeletons):
 
@@ -214,8 +215,6 @@ def compute_keypositions(local_minima, pose_state, skeletons):
             pelvis_positions.append(skeleton[0][1])
             Rknee_positions.append(skeleton[14][1])
             Lknee_positions.append(skeleton[16][1])
-
-    pelvis_positions.append(0.956)
 
     for i,R in enumerate(Rknee_positions):
         knee_positions.append((Rknee_positions[i]+Lknee_positions[i])/2)
