@@ -45,7 +45,7 @@ def compute_pose(Rarm_angle, Larm_angle, Rleg_angle, Lleg_angle, Rshoulder_angle
     pelvis_y=skeleton[0][1]
 
     # print("RARM ANGLE:",Rarm_angle)
-    # print("RARM ANGLE:",Larm_angle)
+    # print("LARM ANGLE:",Larm_angle)
     #
     # print("RLEG ANGLE:",Rleg_angle)
     # print("LLEG ANGLE:",Lleg_angle)
@@ -55,24 +55,23 @@ def compute_pose(Rarm_angle, Larm_angle, Rleg_angle, Lleg_angle, Rshoulder_angle
     #
     # print("RSHOULDER-ARM ANGLE:",Rshoulder_arm_angle)
     # print("LSHOULDER-ANGLE:",Lshoulder_arm_angle)
-    # print("PELVIS POSITION:", )
-
+    # print("PELVIS POSITION:", pelvis_y )
 
     if (
         abs(Rarm_angle - 180) <= 10
         and abs(Larm_angle - 180) <= 10
         and abs(Rleg_angle - 180) <= 10
         and abs(Lleg_angle - 180) <= 10
-        and abs(Rshoulder_arm_angle - 180) <= 20
-        and abs(Lshoulder_arm_angle - 180) <= 20
+        and abs(Rshoulder_arm_angle - 180) <= 50
+        and abs(Lshoulder_arm_angle - 180) <= 50
         and abs((Rshoulder_angle+Lshoulder_angle) - 180) <= 14
     ):
         return "T-POSE"
     elif (
         abs(Rleg_angle - 90) <= 10
         and abs(Lleg_angle - 90) <= 10
-        or abs(pelvis_y-skeleton[23][1])<= 0.4
-        or abs(pelvis_y-skeleton[19][1])<= 0.4
+        or abs(pelvis_y-skeleton[23][1])<= 0.35
+        or abs(pelvis_y-skeleton[19][1])<= 0.35
     ):
         return "INTERMEDIATE"
     else:
@@ -91,7 +90,12 @@ def read_skeletons(file_name):
 
     return keypoints
 
-def plot_pelvis_position(skeletons):
+def compute_local_minima(skeletons):
+
+    '''
+    In this function we plot the positions timeline, the variation of the y coordinate of the pelvis joint
+    and of the knees (average of the two), showing the local minima computed by np.lextrema and finding the real minimum.
+    '''
     timestamps = range(len(skeletons))
     pelvis_positions=[]
     Rknee_positions=[]
@@ -115,7 +119,7 @@ def plot_pelvis_position(skeletons):
     #post-processing
     local_minima_indices = [i for i in local_minima_indices if pelvis_positions[i] <= avg]
 
-    plt.scatter(local_minima_indices, np.array(pelvis_positions)[local_minima_indices], color='red', label='Local Minima')
+    #plt.scatter(local_minima_indices, np.array(pelvis_positions)[local_minima_indices], color='red', label='Local Minima')
 
     plt.plot(timestamps, pelvis_positions, knee_positions)
     plt.xlabel('Time')
@@ -147,44 +151,77 @@ def plot_pose(pose_state):
 
     #plt.show()
 
-def compute_keypositions(local_minima, pose_state, skeletons):
+def compute_squat_positions(local_minima, pose_state, skeletons):
 
+    '''
+    This function return the time instans of the relevant position for the squat sequence
+    T-POSE: the beginning of the sequence
+    INTERMEDIATE: the squat is about to start or just finished
+    INTERMEDIATE_UP: in the middle of the ascending phase for the squat
+    INTERMEDIATE_DOWN: in the middle of the descending phase for the squat
+    '''
+
+    pose_index=[]
+    Tpose_index=[]
+    deep_squats_index=[]
     local_minima_filtered = []
 
-    #Filtrate positions that are not in the squatting phase
+    '''
+    Here we filter the local minima that are not in the nearby of the squat action
+    '''
     for idx in local_minima:
         if idx < len(pose_state) and pose_state[idx] == "INTERMEDIATE":
             local_minima_filtered.append(idx)
 
     phases=[]
-
-    t=0
     phase=-1
     last_seen="-"
 
-    #Trying to map the local minima to the correct squat number
+    '''
+    Here we map each local minima to its respective squat action
+    and we also begin to populate the final array: pose_index with the
+    start and end of a squat action phase
+    '''
     for i,idx in enumerate(pose_state):
-            if pose_state[i]=="INTERMEDIATE":
-                if last_seen=="-":
-                    phase+=1
-                    phases.append([])
-                    #new squat zone
-                phases[phase].append(i)
-            last_seen=pose_state[i]
+        pose_index.append([])
+        if pose_state[i]=="T-POSE":
+            Tpose_index.append(i)
+        elif pose_state[i]=="INTERMEDIATE":
+            if last_seen=="-":
+                pose_index[i]="intermediate"
+                phase+=1
+                phases.append([])
+                #new squat zone
+            phases[phase].append(i)
+        elif pose_state[i]=="-":
+            if last_seen=="INTERMEDIATE":
+                pose_index[i-1]="intermediate"
+        last_seen=pose_state[i]
 
-    keypositions=[]
+    '''
+    Find and mark the T pose instant with an average of the instants when the person is int T-pose
+
+    '''
+    t_pose_index = int(np.mean(Tpose_index))
+
+    pose_index[t_pose_index]="T-POSE"
+
+    '''
+      SQUAT POSITIONS
+      The idea here is to iterate on the time instants and search only for the real minimum in the squatting phase,
+      being aware of the number of the squatting action
+    '''
+    temp_keypositions=[]
     #post-processing
     for i,zone in enumerate(phases):
-        keypositions.append([])
+        temp_keypositions.append([])
         for j in local_minima_filtered:
             for k in zone:
                 if j==k:
-                    keypositions[i].append(j)
-
-    deep_squats_index=[]
+                    temp_keypositions[i].append(j)
 
     #now we try to recover the position of deep squat
-    for i,zone in enumerate(keypositions):
+    for i,zone in enumerate(temp_keypositions):
         deep_squats_index.append(0)
         min=math.inf
         min_t=0
@@ -194,32 +231,82 @@ def compute_keypositions(local_minima, pose_state, skeletons):
                 deep_squats_index[i]=local_minimum
                 #print("the deep squat is at frame "+str(deep_squats_index[i]))
 
-    for i,x in enumerate(deep_squats_index):
-        if x==0:
-            deep_squats_index.pop(i)
+    '''
+    Remove 0 from deep_squats_index
+    '''
 
     for i,x in enumerate(deep_squats_index):
         if x==0:
             deep_squats_index.pop(i)
 
-    print(deep_squats_index)
+    for i,x in enumerate(deep_squats_index):
+        if x==0:
+            deep_squats_index.pop(i)
+
+    for x in deep_squats_index:
+        pose_index[x]="Squat"
+
+    #print(deep_squats_index)
+
+    '''
+       INTERMEDIATE POSITIONS
+       Now we understand when the squatting action is about to start or when it's finished, and mark the corresponding
+       time instant. We also mark a medium position for both descending (intermediate_down) and ascending phase (intermediate_up)
+    '''
+
+    i=0
+    j=0
+    k=-1
+    proposal1=0
+    proposal2=0
+    while j<len(deep_squats_index) and i<len(pose_index):
+        if pose_index[i]=="T-POSE":
+            k=i
+        elif pose_index[i]=='intermediate' and k!=-1:
+            pose_index[k+(int((i-k)/3))]='Tintermediate_1'
+            pose_index[k+int(2*(i-k)/3)]='Tintermediate_2'
+            k=-1
+        elif pose_index[i]=='intermediate' and i<deep_squats_index[j]:
+            proposal1=i+int((deep_squats_index[j]-i)/3)
+            proposal2=i+int(((deep_squats_index[j]-i)*2)/3)
+        if pose_index[i]=='Squat':
+            if proposal1!=0 and proposal2!=0:
+                pose_index[proposal1]='intermediate_down1'
+                pose_index[proposal2]='intermediate_down2'
+            j+=1
+        i+=1
+
+    i=len(pose_index)-1
+    j=len(deep_squats_index)-1
+
+    while j>-1 and i>0:
+        if pose_index[i]=='intermediate' and i>deep_squats_index[j]:
+            proposal1=i+int((deep_squats_index[j]-i)/3)
+            proposal2=i+int(((deep_squats_index[j]-i)*2)/3)
+        if pose_index[i]=='Squat':
+            if proposal1!=0 and proposal2!=0:
+                pose_index[proposal1]='intermediate_up2'
+                pose_index[proposal2]='intermediate_up1'
+            j-=1
+        i-=1
+
+    pose_index2=[]
+    for i,x in enumerate(pose_index):
+        if x!=[]:
+            pose_index2.append([i,x])
+
+    #print(pose_index2)
 
     ################################################################################
-    timestamps = range(len(skeletons))
     pelvis_positions=[]
-    Rknee_positions=[]
-    Lknee_positions=[]
-    knee_positions=[]
+
     for skeleton in skeletons:
         if len(skeleton)!=0:
             pelvis_positions.append(skeleton[0][1])
-            Rknee_positions.append(skeleton[14][1])
-            Lknee_positions.append(skeleton[16][1])
 
-    for i,R in enumerate(Rknee_positions):
-        knee_positions.append((Rknee_positions[i]+Lknee_positions[i])/2)
+    indici=[point[0] for point in pose_index2]
 
-    plt.scatter(deep_squats_index, np.array(pelvis_positions)[deep_squats_index], color='purple', label='Local Minima')
+    plt.scatter(indici, np.array(pelvis_positions)[indici], color='green', label='Key Positions')
 
     #plt.plot(timestamps, pelvis_positions, knee_positions)
     plt.xlabel('Time')
@@ -227,22 +314,23 @@ def compute_keypositions(local_minima, pose_state, skeletons):
     plt.title('Key positions')
     plt.show()
 
-    return deep_squats_index
+    return indici
 
 
 def main():
 
     if len(sys.argv) > 1:
         file_name = sys.argv[1]
+        #frame = int(sys.argv[2])
     else:
         print("No file name provided.")
         exit(1)
 
     skeletons=read_skeletons(file_name)
-    #skeleton=skeletons[frame]
-
-    #print(skeleton.shape)
-
+    # skeleton=skeletons[frame]
+    #
+    # print(skeleton.shape)
+    #
     # # split the points into x, y, z coordinates
     # x = [p[0] for p in skeleton]
     # y = [p[1] for p in skeleton]
@@ -261,32 +349,34 @@ def main():
     # ax.set_ylabel('Y')
     # ax.set_zlabel('Z')
     # ax.set_title(f'Frame {frame}')
-    #
     # plt.show()
 
-    # skeleton[bones["Rarm"][0]][2] -> THE Z COORD OF THE FIRST POINT OF THE R ARM BONE
-    # skeleton[bones["Rarm"][1]][1] -> THE Y COORD OF THE SECOND POINT OF THE R ARM BONE
 
+    '''
+    THESE ARE ANGLES IN THE PLANE XY
+    skeleton[bones["Rarm"][0]][0] -> THE X COORD OF THE FIRST POINT OF THE R ARM BONE
+    skeleton[bones["Rarm"][1]][1] -> THE Y COORD OF THE SECOND POINT OF THE R ARM BONE
+    '''
     pose_state=[]
 
     for i,skeleton in enumerate(skeletons):
         if (len(skeleton)!=0 and np.array(skeleton).shape==(34,3)):
-            Rarm_angle=compute_angle(skeleton[bones["Rarm"][0]][2],skeleton[bones["Rarm"][0]][1],skeleton[bones["Rarm"][1]][2],skeleton[bones["Rarm"][1]][1],skeleton[bones["Rforearm"][0]][2],skeleton[bones["Rforearm"][0]][1],skeleton[bones["Rforearm"][1]][2],skeleton[bones["Rforearm"][1]][1])
-            Larm_angle=compute_angle(skeleton[bones["Larm"][0]][2],skeleton[bones["Larm"][0]][1],skeleton[bones["Larm"][1]][2],skeleton[bones["Larm"][1]][1],skeleton[bones["Lforearm"][0]][2],skeleton[bones["Lforearm"][0]][1],skeleton[bones["Lforearm"][1]][2],skeleton[bones["Lforearm"][1]][1])
-            Rleg_angle=compute_angle(skeleton[bones["Rthigh"][0]][2],skeleton[bones["Rthigh"][0]][1],skeleton[bones["Rthigh"][1]][2],skeleton[bones["Rthigh"][1]][1],skeleton[bones["Rshin"][0]][2],skeleton[bones["Rshin"][0]][1],skeleton[bones["Rshin"][1]][2],skeleton[bones["Rshin"][1]][1])
-            Lleg_angle=compute_angle(skeleton[bones["Lthigh"][0]][2],skeleton[bones["Lthigh"][0]][1],skeleton[bones["Lthigh"][1]][2],skeleton[bones["Lthigh"][1]][1],skeleton[bones["Lshin"][0]][2],skeleton[bones["Lshin"][0]][1],skeleton[bones["Lshin"][1]][2],skeleton[bones["Lshin"][1]][1])
-            Rshoulder_angle=compute_angle(skeleton[bones["Rshoulder"][0]][2],skeleton[bones["Rshoulder"][0]][1],skeleton[bones["Rshoulder"][1]][2],skeleton[bones["Rshoulder"][1]][1],skeleton[bones["neck"][0]][2],skeleton[bones["neck"][0]][1],skeleton[bones["neck"][1]][2],skeleton[bones["neck"][1]][1])
-            Lshoulder_angle=compute_angle(skeleton[bones["Lshoulder"][0]][2],skeleton[bones["Lshoulder"][0]][1],skeleton[bones["Lshoulder"][1]][2],skeleton[bones["Lshoulder"][1]][1],skeleton[bones["neck"][0]][2],skeleton[bones["neck"][0]][1],skeleton[bones["neck"][1]][2],skeleton[bones["neck"][1]][1])
-            Rshoulder_arm_angle=compute_angle(skeleton[bones["Rshoulder"][0]][2],skeleton[bones["Rshoulder"][0]][1],skeleton[bones["Rshoulder"][1]][2],skeleton[bones["Rshoulder"][1]][1],skeleton[bones["Rarm"][0]][2],skeleton[bones["Rarm"][0]][1],skeleton[bones["Rarm"][1]][2],skeleton[bones["Rarm"][1]][1])
-            Lshoulder_arm_angle=compute_angle(skeleton[bones["Lshoulder"][0]][2],skeleton[bones["Lshoulder"][0]][1],skeleton[bones["Lshoulder"][1]][2],skeleton[bones["Lshoulder"][1]][1],skeleton[bones["Larm"][0]][2],skeleton[bones["Larm"][0]][1],skeleton[bones["Larm"][1]][2],skeleton[bones["Larm"][1]][1])
+            Rarm_angle=compute_angle(skeleton[bones["Rarm"][0]][0],skeleton[bones["Rarm"][0]][1],skeleton[bones["Rarm"][1]][0],skeleton[bones["Rarm"][1]][1],skeleton[bones["Rforearm"][0]][0],skeleton[bones["Rforearm"][0]][1],skeleton[bones["Rforearm"][1]][0],skeleton[bones["Rforearm"][1]][1])
+            Larm_angle=compute_angle(skeleton[bones["Larm"][0]][0],skeleton[bones["Larm"][0]][1],skeleton[bones["Larm"][1]][0],skeleton[bones["Larm"][1]][1],skeleton[bones["Lforearm"][0]][0],skeleton[bones["Lforearm"][0]][1],skeleton[bones["Lforearm"][1]][0],skeleton[bones["Lforearm"][1]][1])
+            Rleg_angle=compute_angle(skeleton[bones["Rthigh"][0]][0],skeleton[bones["Rthigh"][0]][1],skeleton[bones["Rthigh"][1]][0],skeleton[bones["Rthigh"][1]][1],skeleton[bones["Rshin"][0]][0],skeleton[bones["Rshin"][0]][1],skeleton[bones["Rshin"][1]][0],skeleton[bones["Rshin"][1]][1])
+            Lleg_angle=compute_angle(skeleton[bones["Lthigh"][0]][0],skeleton[bones["Lthigh"][0]][1],skeleton[bones["Lthigh"][1]][0],skeleton[bones["Lthigh"][1]][1],skeleton[bones["Lshin"][0]][0],skeleton[bones["Lshin"][0]][1],skeleton[bones["Lshin"][1]][0],skeleton[bones["Lshin"][1]][1])
+            Rshoulder_angle=compute_angle(skeleton[bones["Rclavicle"][0]][0],skeleton[bones["Rclavicle"][0]][1],skeleton[bones["Rclavicle"][1]][0],skeleton[bones["Rclavicle"][1]][1],skeleton[bones["neck"][0]][0],skeleton[bones["neck"][0]][1],skeleton[bones["neck"][1]][0],skeleton[bones["neck"][1]][1])
+            Lshoulder_angle=compute_angle(skeleton[bones["Lclavicle"][0]][0],skeleton[bones["Lclavicle"][0]][1],skeleton[bones["Lclavicle"][1]][0],skeleton[bones["Lclavicle"][1]][1],skeleton[bones["neck"][0]][0],skeleton[bones["neck"][0]][1],skeleton[bones["neck"][1]][0],skeleton[bones["neck"][1]][1])
+            Rshoulder_arm_angle=compute_angle(skeleton[bones["Rshoulder"][0]][0],skeleton[bones["Rshoulder"][0]][1],skeleton[bones["Rshoulder"][1]][0],skeleton[bones["Rshoulder"][1]][1],skeleton[bones["Rarm"][0]][0],skeleton[bones["Rarm"][0]][1],skeleton[bones["Rarm"][1]][0],skeleton[bones["Rarm"][1]][1])
+            Lshoulder_arm_angle=compute_angle(skeleton[bones["Lshoulder"][0]][0],skeleton[bones["Lshoulder"][0]][1],skeleton[bones["Lshoulder"][1]][0],skeleton[bones["Lshoulder"][1]][1],skeleton[bones["Larm"][0]][0],skeleton[bones["Larm"][0]][1],skeleton[bones["Larm"][1]][0],skeleton[bones["Larm"][1]][1])
 
             pose_state.append(compute_pose(Rarm_angle,Larm_angle,Rleg_angle,Lleg_angle,Rshoulder_angle,Lshoulder_angle,Rshoulder_arm_angle,Lshoulder_arm_angle,skeleton))
 
-    local_minima=plot_pelvis_position(skeletons)
+    local_minima=compute_local_minima(skeletons)
 
     plot_pose(pose_state)
 
-    compute_keypositions(local_minima, pose_state, skeletons)
+    print(compute_squat_positions(local_minima, pose_state, skeletons))
 
 
 if __name__ == '__main__':
