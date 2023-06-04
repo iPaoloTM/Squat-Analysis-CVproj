@@ -8,6 +8,10 @@ import sys
 import math
 from scipy.signal import argrelextrema
 
+'''
+ZED Skeleton with 34 joints
+'''
+
 bones={"pelvis+abs": [0,1], "chest": [1,2], "neck": [3,26],
        "Rclavicle":[3,11],"Rshoulder":[11,12],"Rarm":[12,13], "Rforearm":[13,14],
        "Lclavicle":[3,4],"Lshoulder":[4,5], "Larm":[5,6], "Lforearm":[6,7],
@@ -41,6 +45,15 @@ def compute_angle(x1,y1,x2,y2,x3,y3,x4,y4):
     return 180-angle_diff
 
 def compute_pose(Rarm_angle, Larm_angle, Rleg_angle, Lleg_angle, Rshoulder_angle, Lshoulder_angle, Rshoulder_arm_angle, Lshoulder_arm_angle,skeleton):
+
+    '''
+    Critera:
+    T_POSE: (starting position) the skeleton has the arms, forearms and shoulders on the same horizontal line. Same with legs (thighs + shins)
+            and the neck must form a 90 degrees angle with both the shoulders
+    INTERMEDIATE: (when the squat is about to begin/end) the thighs and the shins form a 90 degrees angle and the pelvis y-coord
+                  is 'near' the y-coord of both the knees
+    -: everything else
+    '''
 
     pelvis_y=skeleton[0][1]
 
@@ -93,6 +106,8 @@ def read_skeletons(file_name):
 def compute_local_minima(skeletons):
 
     '''
+    Assumption: we expect a function with many local minima, corresponding to the different deep squat phases
+    So we search for the local minima and then isolate a unique minimum for each squat
     In this function we plot the positions timeline, the variation of the y coordinate of the pelvis joint
     and of the knees (average of the two), showing the local minima computed by np.lextrema and finding the real minimum.
     '''
@@ -251,7 +266,7 @@ def compute_squat_positions(local_minima, pose_state, skeletons):
     '''
        INTERMEDIATE POSITIONS
        Now we understand when the squatting action is about to start or when it's finished, and mark the corresponding
-       time instant. We also mark a medium position for both descending (intermediate_down) and ascending phase (intermediate_up)
+       time instant. We also mark two medium positions for both descending (intermediate_down) and ascending phase (intermediate_up)
     '''
 
     i=0

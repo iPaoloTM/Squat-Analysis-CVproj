@@ -8,6 +8,10 @@ import sys
 import math
 from scipy.signal import argrelextrema
 
+'''
+MOCAP Skeleton with 20 joints
+'''
+
 bones={"pelvis": [0,1], "abs": [1,2], "chest": [2,3], "neck": [3,4],
        "Rclavicle":[3,5],"Rshoulder":[5,6],"Rarm":[6,7], "Rforearm":[7,8],
        "Lclavicle":[3,9],"Lshoulder":[9,10], "Larm":[10,11], "Lforearm":[11,12],
@@ -41,6 +45,15 @@ def compute_angle(x1,y1,x2,y2,x3,y3,x4,y4):
     return 180-angle_diff
 
 def compute_pose(Rarm_angle, Larm_angle, Rleg_angle, Lleg_angle, Rshoulder_angle, Lshoulder_angle, Rshoulder_arm_angle, Lshoulder_arm_angle,skeleton):
+
+    '''
+    Critera:
+    T_POSE: (starting position) the skeleton has the arms, forearms and shoulders on the same horizontal line. Same with legs (thighs + shins)
+            and the neck must form a 90 degrees angle with both the shoulders
+    INTERMEDIATE: (when the squat is about to begin/end) the thighs and the shins form a 90 degrees angle and the pelvis y-coord
+                  is 'near' the y-coord of both the knees
+    -: everything else
+    '''
 
     pelvis_y=skeleton[0][1]
 
@@ -93,6 +106,13 @@ def read_skeletons(file_name):
     return keypoints
 
 def compute_local_minima(skeletons):
+
+    '''
+    Assumption: we expect a function with many local minima, corresponding to the different deep squat phases
+    So we search for the local minima and then isolate a unique minimum for each squat
+    In this function we plot the positions timeline, the variation of the y coordinate of the pelvis joint
+    and of the knees (average of the two), showing the local minima computed by np.lextrema and finding the real minimum.
+    '''
     timestamps = range(len(skeletons))
     pelvis_positions=[]
     Rknee_positions=[]
@@ -242,21 +262,29 @@ def compute_squat_positions(local_minima, pose_state, skeletons):
     '''
        INTERMEDIATE POSITIONS
        Now we understand when the squatting action is about to start or when it's finished, and mark the corresponding
-       time instant. We also mark a medium position for both descending (intermediate_down) and ascending phase (intermediate_up)
+       time instant. We also mark two medium positions for both descending (intermediate_down) and ascending phase (intermediate_up)
     '''
 
     i=0
-    j=0
     k=-1
+    j=0
+    for i,x in enumerate(pose_index):
+        if x=='T-POSE':
+
+            k=i
+        elif x=='intermediate' and k!=-1:
+            pose_index[k+(int((i-k)/3))]='Tintermediate_1'
+            pose_index[k+int(2*(i-k)/3)]='Tintermediate_2'
+            k=-1
+            break
+
+    i=0
+    j=0
     proposal1=0
     proposal2=0
     while j<len(deep_squats_index) and i<len(pose_index):
         if pose_index[i]=="T-POSE":
             k=i
-        elif pose_index[i]=='intermediate' and k!=-1:
-            pose_index[k+(int((i-k)/3))]='Tintermediate_1'
-            pose_index[k+int(2*(i-k)/3)]='Tintermediate_2'
-            k=-1
         elif pose_index[i]=='intermediate' and i<deep_squats_index[j]:
             proposal1=i+int((deep_squats_index[j]-i)/3)
             proposal2=i+int(((deep_squats_index[j]-i)*2)/3)
@@ -266,6 +294,7 @@ def compute_squat_positions(local_minima, pose_state, skeletons):
                 pose_index[proposal2]='intermediate_down2'
             j+=1
         i+=1
+
 
     i=len(pose_index)-1
     j=len(deep_squats_index)-1
@@ -285,9 +314,6 @@ def compute_squat_positions(local_minima, pose_state, skeletons):
     for i,x in enumerate(pose_index):
         if x!=[]:
             pose_index2.append([i,x])
-
-    print(pose_index2)
-
 
     ################################################################################
     pelvis_positions=[]
@@ -364,7 +390,6 @@ def main():
             pose_state.append(compute_pose(Rarm_angle,Larm_angle,Rleg_angle,Lleg_angle,Rshoulder_angle,Lshoulder_angle,Rshoulder_arm_angle,Lshoulder_arm_angle,skeleton))
 
     local_minima=compute_local_minima(skeletons)
-
     plot_pose(pose_state)
 
     print(compute_squat_positions(local_minima, pose_state, skeletons))
