@@ -1,0 +1,10 @@
+README
+
+Rendering MOCAP skeleton
+
+1) convert fbx to bvh -->  python utils/fbx2bvh.py
+2) plot of bvh in blender
+3) save of the plot
+
+
+bvh_from_blender.bvh has been exported directly from blender
