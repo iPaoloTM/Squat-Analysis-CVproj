@@ -6,6 +6,15 @@ import json
 import sys
 import glob
 import sys
+import math
+
+bones={"pelvis+abs": [0,1], "chest": [1,2], "neck": [3,26],
+       "Rclavicle":[3,11],"Rshoulder":[11,12],"Rarm":[12,13], "Rforearm":[13,14],
+       "chest1":[2,11],"chest2":[2,3],"chest3":[2,4],
+       "Lclavicle":[3,4],"Lshoulder":[4,5], "Larm":[5,6], "Lforearm":[6,7],
+       "Rhip":[0,22], "Rthigh":[22,23],"Rshin":[23,24],
+       "Lhip":[0,18], "Lthigh":[18,19],"Lshin":[19,20],
+       "Rfoot":[25,33],"Rankle":[24,33],"Lfoot":[21,32],"Lankle":[20,32]}
 
 def read_skeleton(file_name, frame):
     with open('../body_data/'+file_name+'.json', 'r') as f:
@@ -28,7 +37,21 @@ def plot_skeleton(skeleton):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
+
     ax.scatter(x, y, z, marker='o')
+
+    for bone, indices in bones.items():
+        idx1, idx2 = indices
+        ax.plot([x[idx1], x[idx2]], [y[idx1], y[idx2]], [z[idx1], z[idx2]], color='blue')
+
+    vline_x = skeleton[0][0]
+    vline_y = skeleton[0][1]
+    vline_z = max(skeleton[0][2], skeleton[1][2]) + 1  # Extend the line above the highest point
+
+    # Plot the vertical line
+    ax.plot([vline_x, vline_x], [vline_z, min(skeleton[0][2], skeleton[1][2])], [vline_y, vline_y], 'r--', label='Vertical Line')
+
+    ax.scatter(skeleton[0][0],skeleton[0][1]+0.5)
 
     ax.set_xlabel('X Label')
     ax.set_ylabel('Y Label')
@@ -39,8 +62,6 @@ def plot_skeleton(skeleton):
     ax.view_init(azim=-90, elev=90)
 
     plt.show()
-
-import numpy as np
 
 def center_skeleton(skeleton):
 
@@ -53,6 +74,29 @@ def center_skeleton(skeleton):
         skeleton[i] += displacement_vector
 
     return skeleton
+
+def compute_angle(x1,y1,x2,y2,x3,y3,x4,y4):
+
+    if (((x2 - x1)!=0) & ((x4 - x3)!=0)):
+        slope1 = (y2 - y1) / (x2 - x1)
+        slope2 = (y4 - y3) / (x4 - x3)
+    elif (((x2 - x1)==0) & ((x4 - x3)==0)):
+        slope1=math.inf
+        slope2=math.inf
+    elif ((x2-x1)==0):
+        slope1=math.inf
+        slope2 = (y4 - y3) / (x4 - x3)
+    elif ((x4 - x3)==0):
+        slope1 = (y2 - y1) / (x2 - x1)
+        slope2=math.inf
+
+    angle1 = math.degrees(math.atan(slope1))
+    angle2 = math.degrees(math.atan(slope2))
+
+    angle_diff = abs(angle2 - angle1)
+
+    return angle_diff
+
 
 def main():
 
@@ -69,6 +113,8 @@ def main():
     print(keypoints)
 
     plot_skeleton(keypoints)
+
+    print("Back angle:",compute_angle(keypoints[0][0],keypoints[0][1], keypoints[1][0], keypoints[1][1],keypoints[0][0],keypoints[0][1],keypoints[0][0],keypoints[0][1]+0.5))
 
 if __name__ == '__main__':
     main()

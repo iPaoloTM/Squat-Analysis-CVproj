@@ -270,18 +270,25 @@ def compute_squat_positions(local_minima, pose_state, skeletons):
     '''
 
     i=0
+    k=-1
+    j=0
+    for i,x in enumerate(pose_index):
+        if x=='T-POSE':
+
+            k=i
+        elif x=='intermediate' and k!=-1:
+            pose_index[k+(int((i-k)/3))]='Tintermediate_1'
+            pose_index[k+int(2*(i-k)/3)]='Tintermediate_2'
+            k=-1
+            break
+
+    i=0
     j=0
     k=-1
     proposal1=0
     proposal2=0
     while j<len(deep_squats_index) and i<len(pose_index):
-        if pose_index[i]=="T-POSE":
-            k=i
-        elif pose_index[i]=='intermediate' and k!=-1:
-            pose_index[k+(int((i-k)/3))]='Tintermediate_1'
-            pose_index[k+int(2*(i-k)/3)]='Tintermediate_2'
-            k=-1
-        elif pose_index[i]=='intermediate' and i<deep_squats_index[j]:
+        if pose_index[i]=='intermediate' and i<deep_squats_index[j]:
             proposal1=i+int((deep_squats_index[j]-i)/3)
             proposal2=i+int(((deep_squats_index[j]-i)*2)/3)
         if pose_index[i]=='Squat':
@@ -310,7 +317,7 @@ def compute_squat_positions(local_minima, pose_state, skeletons):
         if x!=[]:
             pose_index2.append([i,x])
 
-    #print(pose_index2)
+    print(pose_index2)
 
     ################################################################################
     pelvis_positions=[]

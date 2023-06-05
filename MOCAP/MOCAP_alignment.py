@@ -283,9 +283,7 @@ def compute_squat_positions(local_minima, pose_state, skeletons):
     proposal1=0
     proposal2=0
     while j<len(deep_squats_index) and i<len(pose_index):
-        if pose_index[i]=="T-POSE":
-            k=i
-        elif pose_index[i]=='intermediate' and i<deep_squats_index[j]:
+        if pose_index[i]=='intermediate' and i<deep_squats_index[j]:
             proposal1=i+int((deep_squats_index[j]-i)/3)
             proposal2=i+int(((deep_squats_index[j]-i)*2)/3)
         if pose_index[i]=='Squat':
