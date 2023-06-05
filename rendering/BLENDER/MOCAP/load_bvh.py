@@ -188,7 +188,5 @@ def load_bvh(file_name):
 if __name__ == '__main__':
     bpy.ops.object.select_all(action='SELECT')
     bpy.ops.object.delete()
-
-    #file_name = './example.bvh'
-    file_name = './matteo_spiderman.bvh'
+    file_name = './misure_nuove2.bvh'
     load_bvh(file_name)
