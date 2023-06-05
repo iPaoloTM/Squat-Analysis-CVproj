@@ -25,7 +25,7 @@ class Poses_3d:
                 frame_vectors.append([x, y, z])
             vectors.append(frame_vectors)
 
-        # Loop through the vectors and plot each one
+        # Loop through the vectors 
         for i, vector in enumerate(vectors):
             vector_array = np.array(vector)
 
