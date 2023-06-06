@@ -7,6 +7,14 @@ import sys
 import cv2
 import os
 
+bones={"pelvis+abs": [0,1], "chest": [1,2], "neck": [3,26],
+       "Rclavicle":[3,11],"Rshoulder":[11,12],"Rarm":[12,13], "Rforearm":[13,14],
+       "chest1":[2,11],"chest2":[2,3],"chest3":[2,4],
+       "Lclavicle":[3,4],"Lshoulder":[4,5], "Larm":[5,6], "Lforearm":[6,7],
+       "Rhip":[0,22], "Rthigh":[22,23],"Rshin":[23,24],
+       "Lhip":[0,18], "Lthigh":[18,19],"Lshin":[19,20],
+       "Rfoot":[25,33],"Rankle":[24,33],"Lfoot":[21,32],"Lankle":[20,32]}
+
 def read_skeleton(file_name):
 
     # Load the JSON file
@@ -34,20 +42,13 @@ def plot_skeletons(vectors,tracking_state,action_state):
 
     completed_images=0
 
-    colors = ['b'] * 34
-    #pelvis, left hip, right hip, left knee and right knee will be red
-    colors[0]  = 'r'
-    colors[18] = 'r'
-    colors[19] = 'r'
-    colors[22] = 'r'
-    colors[23] = 'r'
-
     # Loop through the vectors and plot each one
     for i, vector in enumerate(vectors):
         if i > 0:
             ax.collections[0].remove()  # Remove the scatter plot from the previous frame
         vector_array = np.array(vector)
-        ax.scatter(vector_array[:, 0], vector_array[:, 1], c=colors, cmap='rainbow')
+
+        ax.scatter(vector_array[:, 0], vector_array[:, 1], color='orange')
 
         ax.set_xlabel('X Label')
         ax.set_ylabel('Y Label')
@@ -94,7 +95,7 @@ def main():
         size = (width,height)
         img_array.append(img)
 
-    os.system('ffmpeg -framerate 60 -i frame_%d.png -c:v libx264 -r 30 -pix_fmt yuv420p '+file_name+'ZED.mp4 -y')
+    os.system('ffmpeg -framerate 60 -i frame_%d.png -c:v libx264 -r 30 -pix_fmt yuv420p '+file_name+'.mp4 -y')
 
     # Remove all the files with pattern 'frame_*.png'
     print("Removing frames")

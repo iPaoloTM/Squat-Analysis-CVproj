@@ -29,8 +29,8 @@ def read_skeleton(file_name, frame):
 
 def plot_skeleton(skeleton):
 
-    print(skeleton.shape)
-    print(skeleton)
+    #print(skeleton.shape)
+    #print(skeleton)
 
     # split the points into x, y, z coordinates
     x = [p[0] for p in skeleton]
@@ -40,30 +40,29 @@ def plot_skeleton(skeleton):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
-    ax.scatter(x, z, y, marker='o')
+    ax.scatter(x, z, y, marker='o', color='green')
 
     for bone, indices in bones.items():
         idx1, idx2 = indices
-        ax.plot([x[idx1], x[idx2]], [z[idx1], z[idx2]], [y[idx1], y[idx2]], color='blue')
+        ax.plot([x[idx1], x[idx2]], [z[idx1], z[idx2]], [y[idx1], y[idx2]], color='green')
 
-    vline_x = skeleton[0][0]
-    vline_y = skeleton[0][1]
-    vline_z = max(skeleton[0][2], skeleton[1][2]) + 1  # Extend the line above the highest point
+    ax.plot([skeleton[0][0], skeleton[0][0]], [skeleton[0][1], skeleton[0][1]], [skeleton[0][2]-1, skeleton[0][2]+1], 'r--', label='Vertical Line')
 
-    ax.plot([vline_x, vline_x], [vline_y, vline_y], [vline_z, min(skeleton[0][2], skeleton[1][2])], 'r--', label='Vertical Line')
+    vline_x = skeleton[3][0]
+    vline_y = skeleton[3][1]
+    vline_z = skeleton[3][2]
 
-    ax.scatter(skeleton[0][0],skeleton[0][0],skeleton[0][2]+0.6)
-    ax.scatter(skeleton[2][0],skeleton[2][2], skeleton[2][1])
+    ax.plot([skeleton[2][0], skeleton[1][0]], [skeleton[2][2], skeleton[1][2]], [skeleton[2][1], skeleton[1][1]],  'r--', label='Vertical Line')
 
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
-    ax.set_xlim([-0.4, 1])
-    ax.set_ylim([-0.4, 1])
-    ax.set_zlim([-1.8, 0.8])
-    #ax.view_init(azim=-90, elev=90)
+    ax.set_xlim([-1, 1])
+    ax.set_ylim([-1, 1])
+    ax.set_zlim([-1, 1])
+    ax.view_init(azim=-118, elev=8)
     ax.invert_yaxis()
-
+    plt.title("MOCAP skeleton")
     plt.show()
 
 def center_skeleton(skeleton):
@@ -78,36 +77,16 @@ def center_skeleton(skeleton):
 
     return skeleton
 
-def compute_angle(x1,y1,x2,y2,x3,y3,x4,y4):
+def compute_angle(x1,y1,x2,y2):
 
-    print(x1)
-    print(y1)
-    print(x2)
-    print(y2)
-    print(x3)
-    print(y3)
-    print(x4)
-    print(y4)
-
-    if (((x2 - x1)!=0) & ((x4 - x3)!=0)):
+    if (x2 - x1)!=0:
         slope1 = (y2 - y1) / (x2 - x1)
-        slope2 = (y4 - y3) / (x4 - x3)
-    elif (((x2 - x1)==0) & ((x4 - x3)==0)):
+    elif (x2-x1)==0:
         slope1=math.inf
-        slope2=math.inf
-    elif ((x2-x1)==0):
-        slope1=math.inf
-        slope2 = (y4 - y3) / (x4 - x3)
-    elif ((x4 - x3)==0):
-        slope1 = (y2 - y1) / (x2 - x1)
-        slope2=math.inf
 
     angle1 = math.degrees(math.atan(slope1))
-    angle2 = math.degrees(math.atan(slope2))
 
-    angle_diff = abs(angle2 - angle1)
-
-    return angle_diff
+    return angle1
 
 def main():
     if len(sys.argv) > 2:
@@ -121,9 +100,10 @@ def main():
 
     keypoints = center_skeleton(keypoints)
 
+    print("Back angle:",compute_angle(keypoints[2][2],keypoints[2][0], keypoints[1][2], keypoints[1][0]))
+
     plot_skeleton(keypoints)
 
-    print("Back angle:",compute_angle(keypoints[0][1],keypoints[0][2], keypoints[1][1], keypoints[1][2],keypoints[0][1],keypoints[0][2],keypoints[0][1],keypoints[0][2]+0.6))
 
 
 if __name__ == '__main__':

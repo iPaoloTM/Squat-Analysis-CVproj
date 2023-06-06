@@ -38,29 +38,22 @@ def plot_skeleton(skeleton):
     ax = fig.add_subplot(111, projection='3d')
 
 
-    ax.scatter(x, y, z, marker='o')
+    ax.scatter(x, z, y, marker='o', color='orange', label='ZED skeleton')
 
     for bone, indices in bones.items():
         idx1, idx2 = indices
-        ax.plot([x[idx1], x[idx2]], [y[idx1], y[idx2]], [z[idx1], z[idx2]], color='blue')
+        ax.plot([x[idx1], x[idx2]], [z[idx1], z[idx2]], [y[idx1], y[idx2]], color='orange')
 
-    vline_x = skeleton[0][0]
-    vline_y = skeleton[0][1]
-    vline_z = max(skeleton[0][2], skeleton[1][2]) + 1  # Extend the line above the highest point
+    ax.plot([skeleton[0][0], skeleton[0][0]], [skeleton[0][1], skeleton[0][1]], [skeleton[0][2]+1,skeleton[0][2]-1], 'r--', label='Vertical Line')
 
-    # Plot the vertical line
-    ax.plot([vline_x, vline_x], [vline_z, min(skeleton[0][2], skeleton[1][2])], [vline_y, vline_y], 'r--', label='Vertical Line')
-
-    ax.scatter(skeleton[0][0],skeleton[0][1]+0.5)
-
-    ax.set_xlabel('X Label')
-    ax.set_ylabel('Y Label')
-    ax.set_zlabel('Z Label')
-    ax.set_xlim([-0.6, 0.6])
-    ax.set_ylim([-1.5, 0.8])
-    ax.set_zlim([-0.5, 0.5])
-    ax.view_init(azim=-90, elev=90)
-
+    ax.set_xlabel('X')
+    ax.set_ylabel('Z')
+    ax.set_zlabel('Y')
+    ax.set_xlim([-1,1])
+    ax.set_ylim([-1,1])
+    ax.set_zlim([-1,1])
+    ax.view_init(azim=148, elev=7)
+    plt.title("ZED skeleton")
     plt.show()
 
 def center_skeleton(skeleton):

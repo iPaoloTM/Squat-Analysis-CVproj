@@ -17,32 +17,6 @@ lower_bones={"Rhip":[0,1],"Rthigh":[1,3],"Rshin":[3,5], "Rfoot":[5,7],
 
 lower_body_indices = [0, 13, 16, 14, 17, 15, 18, 19, 20]
 
-def plot_skeletons(skeleton1, skeleton2, title):
-
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    x1 = [p[0] for p in skeleton1]
-    y1= [p[1] for p in skeleton1]
-    z1 = [p[2] for p in skeleton1]
-
-    ax.scatter(x1, z1,  y1, marker='o', label='Skeleton 1')
-
-    x2 = [p[0] for p in skeleton2]
-    y2 = [p[1] for p in skeleton2]
-    z2 = [p[2] for p in skeleton2]
-
-    ax.scatter(x2, z2, y2, marker='o', label='Skeleton 2')
-
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Z')
-    ax.set_xlim([-0.8, 0.8])
-    ax.set_ylim([-0.8, 0.8])
-    ax.set_zlim([0, 1.8])
-    ax.legend()
-    plt.title(title)
-    plt.show()
-
 def plot_skeletons2(skeleton1, skeleton2, skeleton3, skeleton4, title):
 
     fig = plt.figure(figsize=(12, 6))
@@ -52,27 +26,27 @@ def plot_skeletons2(skeleton1, skeleton2, skeleton3, skeleton4, title):
     x1 = [p[0] for p in skeleton1]
     y1 = [p[1] for p in skeleton1]
     z1 = [p[2] for p in skeleton1]
-    ax1.scatter(x1, z1, y1, marker='o', label='Skeleton 1')
+    ax1.scatter(x1, z1, y1, marker='o', label='Reference skeleton', color='#0545e8')
 
     for bone, indices in bones.items():
         idx1, idx2 = indices
-        ax1.plot([x1[idx1], x1[idx2]], [z1[idx1], z1[idx2]], [y1[idx1], y1[idx2]], color='blue')
+        ax1.plot([x1[idx1], x1[idx2]], [z1[idx1], z1[idx2]], [y1[idx1], y1[idx2]], color='#0545e8')
 
     x2 = [p[0] for p in skeleton2]
     y2 = [p[1] for p in skeleton2]
     z2 = [p[2] for p in skeleton2]
-    ax1.scatter(x2, z2, y2, marker='o', label='Skeleton 2')
+    ax1.scatter(x2, z2, y2, marker='o', label='Sample skeleton', color='#e83205')
 
     for bone, indices in bones.items():
         idx1, idx2 = indices
-        ax1.plot([x2[idx1], x2[idx2]], [z2[idx1], z2[idx2]], [y2[idx1], y2[idx2]], color='orange')
+        ax1.plot([x2[idx1], x2[idx2]], [z2[idx1], z2[idx2]], [y2[idx1], y2[idx2]], color='#e83205')
 
     ax1.set_xlabel('X')
     ax1.set_ylabel('Y')
     ax1.set_zlabel('Z')
-    ax1.set_xlim([-0.8, 0.8])
-    ax1.set_ylim([-0.8, 0.8])
-    ax1.set_zlim([-1.8, 0.8])
+    ax1.set_xlim([-1,1])
+    ax1.set_ylim([-1,1])
+    ax1.set_zlim([-1,1])
     ax1.legend()
 
     # Plotting the second pair of skeletons
@@ -80,27 +54,27 @@ def plot_skeletons2(skeleton1, skeleton2, skeleton3, skeleton4, title):
     x3 = [p[0] for p in skeleton3]
     y3 = [p[1] for p in skeleton3]
     z3 = [p[2] for p in skeleton3]
-    ax2.scatter(x3, z3, y3, marker='o', label='Aligned Skeleton 1')
+    ax2.scatter(x3, z3, y3, marker='o', label='Aligned reference skeleton', color='#0545e8')
 
     for bone, indices in bones.items():
         idx1, idx2 = indices
-        ax2.plot([x3[idx1], x3[idx2]], [z3[idx1], z3[idx2]], [y3[idx1], y3[idx2]], color='blue')
+        ax2.plot([x3[idx1], x3[idx2]], [z3[idx1], z3[idx2]], [y3[idx1], y3[idx2]], color='#0545e8')
 
     x4 = [p[0] for p in skeleton4]
     y4 = [p[1] for p in skeleton4]
     z4 = [p[2] for p in skeleton4]
-    ax2.scatter(x4, z4, y4, marker='o', label='Aligned Skeleton 2')
+    ax2.scatter(x4, z4, y4, marker='o', label='Aligned sample skeleton', color='#e83205')
 
     for bone, indices in bones.items():
         idx1, idx2 = indices
-        ax2.plot([x4[idx1], x4[idx2]], [z4[idx1], z4[idx2]], [y4[idx1], y4[idx2]], color='orange')
+        ax2.plot([x4[idx1], x4[idx2]], [z4[idx1], z4[idx2]], [y4[idx1], y4[idx2]], color='#e83205')
 
     ax2.set_xlabel('X')
     ax2.set_ylabel('Y')
     ax2.set_zlabel('Z')
-    ax2.set_xlim([-0.4, 0.4])
-    ax2.set_ylim([-0.4, 0.4])
-    ax2.set_zlim([-0.7, 0.5])
+    ax2.set_xlim([-0.3, 0.3])
+    ax2.set_ylim([-0.3, 0.3])
+    ax2.set_zlim([-0.3, 0.3])
     ax2.legend()
 
     plt.suptitle(title)
@@ -116,27 +90,27 @@ def plot_skeletons3(skeleton1, skeleton2, skeleton3, skeleton4, title):
     x1 = [p[0] for p in skeleton1]
     y1 = [p[1] for p in skeleton1]
     z1 = [p[2] for p in skeleton1]
-    ax1.scatter(x1, z1, y1, marker='o', label='Skeleton 1')
+    ax1.scatter(x1, z1, y1, marker='o', label='Reference skeleton (lower part)', color='#0545e8')
 
     for bone, indices in lower_bones.items():
         idx1, idx2 = indices
-        ax1.plot([x1[idx1], x1[idx2]], [z1[idx1], z1[idx2]], [y1[idx1], y1[idx2]], color='blue')
+        ax1.plot([x1[idx1], x1[idx2]], [z1[idx1], z1[idx2]], [y1[idx1], y1[idx2]], color='#0545e8')
 
     x2 = [p[0] for p in skeleton2]
     y2 = [p[1] for p in skeleton2]
     z2 = [p[2] for p in skeleton2]
-    ax1.scatter(x2, z2, y2, marker='o', label='Skeleton 2')
+    ax1.scatter(x2, z2, y2, marker='o', label='Sample skeleton (lower part)', color='#e83205')
 
     for bone, indices in lower_bones.items():
         idx1, idx2 = indices
-        ax1.plot([x2[idx1], x2[idx2]], [z2[idx1], z2[idx2]], [y2[idx1], y2[idx2]], color='orange')
+        ax1.plot([x2[idx1], x2[idx2]], [z2[idx1], z2[idx2]], [y2[idx1], y2[idx2]], color='#e83205')
 
     ax1.set_xlabel('X')
     ax1.set_ylabel('Y')
     ax1.set_zlabel('Z')
-    ax1.set_xlim([-0.8, 0.8])
-    ax1.set_ylim([-0.8, 0.8])
-    ax1.set_zlim([-1.8, 0.8])
+    ax1.set_xlim([-1,1])
+    ax1.set_ylim([-1,1])
+    ax1.set_zlim([-1,1])
     ax1.legend()
 
     # Plotting the second pair of skeletons
@@ -144,27 +118,27 @@ def plot_skeletons3(skeleton1, skeleton2, skeleton3, skeleton4, title):
     x3 = [p[0] for p in skeleton3]
     y3 = [p[1] for p in skeleton3]
     z3 = [p[2] for p in skeleton3]
-    ax2.scatter(x3, z3, y3, marker='o', label='Aligned Skeleton 1')
+    ax2.scatter(x3, z3, y3, marker='o', label='Aligned reference skeleton (lower part)', color='#0545e8')
 
     for bone, indices in lower_bones.items():
         idx1, idx2 = indices
-        ax2.plot([x3[idx1], x3[idx2]], [z3[idx1], z3[idx2]], [y3[idx1], y3[idx2]], color='blue')
+        ax2.plot([x3[idx1], x3[idx2]], [z3[idx1], z3[idx2]], [y3[idx1], y3[idx2]], color='#0545e8')
 
     x4 = [p[0] for p in skeleton4]
     y4 = [p[1] for p in skeleton4]
     z4 = [p[2] for p in skeleton4]
-    ax2.scatter(x4, z4, y4, marker='o', label='Aligned Skeleton 2')
+    ax2.scatter(x4, z4, y4, marker='o', label='Aligned sample skeleton (lower part)', color='#e83205')
 
     for bone, indices in lower_bones.items():
         idx1, idx2 = indices
-        ax2.plot([x4[idx1], x4[idx2]], [z4[idx1], z4[idx2]], [y4[idx1], y4[idx2]], color='orange')
+        ax2.plot([x4[idx1], x4[idx2]], [z4[idx1], z4[idx2]], [y4[idx1], y4[idx2]], color='#e83205')
 
     ax2.set_xlabel('X')
     ax2.set_ylabel('Y')
     ax2.set_zlabel('Z')
-    ax2.set_xlim([-0.4, 0.4])
-    ax2.set_ylim([-0.4, 0.4])
-    ax2.set_zlim([-0.7, 0.5])
+    ax2.set_xlim([-0.8,0.8])
+    ax2.set_ylim([-0.8,0.8])
+    ax2.set_zlim([-0.8,0.8])
     ax2.legend()
 
     plt.suptitle(title)
@@ -220,8 +194,8 @@ def main():
     elif skeleton2.shape[0] < max_points:
         skeleton2 = np.pad(skeleton2, ((0, max_points - skeleton2.shape[0]), (0, 0)), mode='constant')
 
-    #print("Skeleton1.shape",skeleton1)
-    #print("Skeleton2.shape",skeleton2)
+    print("Skeleton1: ",skeleton1)
+    print("Skeleton2: ",skeleton2)
 
     #plot_skeletons(skeleton1,skeleton2,"Original Skeletons")
 
@@ -233,7 +207,7 @@ def main():
     aligned_skeleton1 = mtx1.reshape(21, 3)
     aligned_skeleton2 = mtx2.reshape(21, 3)
 
-    plot_skeletons2(skeleton1,skeleton2,aligned_skeleton1,aligned_skeleton2,"Aligned Skeletons")
+    plot_skeletons2(skeleton1,skeleton2,aligned_skeleton1,aligned_skeleton2,"MOCAP Aligned Skeletons")
 
     print("General Disparity:",disparity)
 
@@ -251,7 +225,7 @@ def main():
     aligned_lower_body_skeleton1 = mtx1.reshape(9, 3)
     aligned_lower_body_skeleton2 = mtx2.reshape(9, 3)
 
-    plot_skeletons3(lower_body_skeleton1,lower_body_skeleton2,aligned_lower_body_skeleton1,aligned_lower_body_skeleton2,"Aligned Lower body skeletons")
+    plot_skeletons3(lower_body_skeleton1,lower_body_skeleton2,aligned_lower_body_skeleton1,aligned_lower_body_skeleton2,"MOCAP Aligned Lower body skeletons")
 
     print("Lower body Disparity:",disparity)
 

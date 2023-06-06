@@ -80,7 +80,7 @@ def main():
         size = (width,height)
         img_array.append(img)
 
-    os.system('ffmpeg -framerate 60 -i frame_%d.png -c:v libx264 -r 30 -pix_fmt yuv420p '+file_name+'MOCAP.mp4 -y')
+    os.system('ffmpeg -framerate 60 -i frame_%d.png -c:v libx264 -r 30 -pix_fmt yuv420p '+file_name+'.mp4 -y')
 
     # Remove all the files with pattern 'frame_*.png'
     print("Removing frames")
