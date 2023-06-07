@@ -22,12 +22,33 @@ ax.set_xlabel('X Label')
 ax.set_ylabel('Y Label')
 ax.set_ylabel('Z Label')
 
-ax.set_xlim([-1,1])
-ax.set_ylim([-1,1])
-ax.set_zlim([-1,1])
-
 # Set legend properties
 legend = ax.legend(title='Points', loc='upper right')
 plt.show()
 
 #####################
+
+# Create Open3D point clouds from pelvis data
+point_cloud_sample = o3d.geometry.PointCloud()
+point_cloud_sample.points = o3d.utility.Vector3dVector(pelvises_sample)
+point_cloud_sample.paint_uniform_color([1, 0, 0])  # Set color to red
+
+point_cloud_gt = o3d.geometry.PointCloud()
+point_cloud_gt.points = o3d.utility.Vector3dVector(pelvises_gt)
+point_cloud_gt.paint_uniform_color([0, 0, 1])  # Set color to blue
+
+# Create a visualization window
+vis = o3d.visualization.Visualizer()
+vis.create_window()
+
+# Add point clouds to the visualization
+vis.add_geometry(point_cloud_sample)
+vis.add_geometry(point_cloud_gt)
+
+# Customize visualization settings
+opt = vis.get_render_option()
+opt.point_size = 10
+
+# Run the visualization
+vis.run()
+vis.destroy_window()

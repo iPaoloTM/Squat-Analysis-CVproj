@@ -19,6 +19,19 @@ bones={"pelvis": [0,1], "abs": [1,2], "chest": [2,3], "neck": [3,4],
        "Lhip":[0,16], "Lthigh":[16,17],"Lshin":[17,18],
        "Rfoot":[15,19],"Lfoot":[18,20]}
 
+def center_skeleton(skeleton):
+
+    pelvis_position = skeleton[0]
+
+    # Compute the displacement vector
+    displacement_vector = -pelvis_position
+
+    for i in range(len(skeleton)):
+        skeleton[i] += displacement_vector
+
+    return skeleton
+
+
 def compute_angle(x1,y1,x2,y2,x3,y3,x4,y4):
 
     if (((x2 - x1)!=0) & ((x4 - x3)!=0)):
@@ -101,7 +114,11 @@ def read_skeletons(file_name):
         for joint in frame['keypoints']:
             keypoints[i].append(joint['Position'])
 
-    keypoints=np.array(keypoints, dtype=object)
+    for key in keypoints:
+        print(len(key))
+
+    keypoints=np.array(keypoints)
+    print(len(keypoints))
 
     return keypoints
 
@@ -371,29 +388,7 @@ def compute_squat_positions(local_minima, pose_state, skeletons):
     return intermediate_numbers
 
 
-def main(file_name):
-
-    skeletons=read_skeletons(file_name)
-    # skeleton=skeletons[frame]
-    #
-    # # split the points into x, y, z coordinates
-    # x = [p[0] for p in skeleton]
-    # y = [p[1] for p in skeleton]
-    # z = [p[2] for p in skeleton]
-    #
-    # fig = plt.figure()
-    # ax = fig.add_subplot(111) #, projection='3d')
-    #
-    # ax.scatter(z,y) #,z)
-    #
-    # for bone, indices in bones.items():
-    #     idx1, idx2 = indices
-    #     ax.plot([z[idx1], z[idx2]], [y[idx1], y[idx2]], color='red')
-    #
-    # ax.set_xlabel('X')
-    # ax.set_ylabel('Y')
-    # #ax.set_zlabel('Z')
-    # ax.set_title(f'Frame {frame}')
+def main(skeletons):
 
     '''
     THESE ARE ANGLES IN THE PLANE ZY
