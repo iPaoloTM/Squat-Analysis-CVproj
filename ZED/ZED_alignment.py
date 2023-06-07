@@ -263,9 +263,8 @@ def compute_squat_positions(local_minima, pose_state, skeletons):
     #print(deep_squats_index)
 
     '''
-       INTERMEDIATE POSITIONS
-       Now we understand when the squatting action is about to start or when it's finished, and mark the corresponding
-       time instant. We also mark two medium positions for both descending (intermediate_down) and ascending phase (intermediate_up)
+       T-POSITIONS
+        We retrieve two intermediate positions between the T-pose and the start of the squat sequences
     '''
 
     i=0
@@ -280,6 +279,12 @@ def compute_squat_positions(local_minima, pose_state, skeletons):
             pose_index[k+int(2*(i-k)/3)]='Tintermediate_2'
             k=-1
             break
+
+    '''
+       INTERMEDIATE POSITIONS
+       Now we understand when the squatting action is about to start or when it's finished, and mark the corresponding
+       time instant. We also mark two medium positions for both descending (intermediate_down) and ascending phase (intermediate_up)
+    '''
 
     i=0
     j=0

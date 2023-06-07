@@ -45,6 +45,7 @@ def plot_skeleton(skeleton):
         ax.plot([x[idx1], x[idx2]], [z[idx1], z[idx2]], [y[idx1], y[idx2]], color='orange')
 
     ax.plot([skeleton[0][0], skeleton[0][0]], [skeleton[0][1], skeleton[0][1]], [skeleton[0][2]+1,skeleton[0][2]-1], 'r--', label='Vertical Line')
+    ax.plot([skeleton[0][0], skeleton[1][0]], [skeleton[0][2], skeleton[1][2]], [skeleton[0][1],skeleton[1][1]], 'r--', label='Back line Line')
 
     ax.set_xlabel('X')
     ax.set_ylabel('Z')
@@ -52,6 +53,10 @@ def plot_skeleton(skeleton):
     ax.set_xlim([-1,1])
     ax.set_ylim([-1,1])
     ax.set_zlim([-1,1])
+    ax.xaxis.set_major_locator(plt.MultipleLocator(0.5))
+    ax.yaxis.set_major_locator(plt.MultipleLocator(0.5))
+    ax.zaxis.set_major_locator(plt.MultipleLocator(0.5))
+    #ax.xaxis.set_minor_locator(plt.MultipleLocator(0.05))
     ax.view_init(azim=148, elev=7)
     plt.title("ZED skeleton")
     plt.show()
@@ -67,6 +72,21 @@ def center_skeleton(skeleton):
         skeleton[i] += displacement_vector
 
     return skeleton
+
+def compute_bone_length(joint1, joint2):
+    """
+    Calculate the Euclidean distance between two joints (bone length).
+    """
+    return np.linalg.norm(joint2 - joint1)
+
+def scale_skeleton(skeleton, total_bone_length, desired_bone_length):
+    """
+    Compute the scaling factor given the total bone length and the desired bone length and
+    scale the skeleton by applying the scaling factor to each bone length.
+    """
+    scaling_factor=desired_bone_length / total_bone_length
+    scaled_skeleton = skeleton * scaling_factor
+    return scaled_skeleton
 
 def compute_angle(x1,y1,x2,y2,x3,y3,x4,y4):
 
@@ -90,8 +110,9 @@ def compute_angle(x1,y1,x2,y2,x3,y3,x4,y4):
 
     return angle_diff
 
-
 def main():
+
+    desired_bone_length=4.5
 
     if len(sys.argv) > 2:
         file_name = sys.argv[1]
@@ -100,14 +121,20 @@ def main():
         print("Not enough arguments")
         exit(1)
 
-    keypoints = read_skeleton(file_name,frame)
-    print(keypoints)
-    keypoints = center_skeleton(keypoints)
-    print(keypoints)
+    skeleton = read_skeleton(file_name,frame)
+    print(skeleton)
+    bone_length=0
+    for bone, indices in bones.items():
+        idx1, idx2 = indices
+        bone_length+=compute_bone_length(skeleton[idx1],skeleton[idx2])
+    skeleton=scale_skeleton(skeleton, bone_length,desired_bone_length)
+    skeleton = center_skeleton(skeleton)
+    print(skeleton)
 
-    plot_skeleton(keypoints)
+    print("Back angle:",compute_angle(skeleton[0][0],skeleton[0][1], skeleton[1][0], skeleton[1][1],skeleton[0][0],skeleton[0][1],skeleton[0][0],skeleton[0][1]+0.5))
 
-    print("Back angle:",compute_angle(keypoints[0][0],keypoints[0][1], keypoints[1][0], keypoints[1][1],keypoints[0][0],keypoints[0][1],keypoints[0][0],keypoints[0][1]+0.5))
+    plot_skeleton(skeleton)
+
 
 if __name__ == '__main__':
     main()

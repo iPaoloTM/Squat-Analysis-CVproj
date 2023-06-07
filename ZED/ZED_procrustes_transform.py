@@ -48,6 +48,9 @@ def plot_skeletons2(skeleton1, skeleton2, skeleton3, skeleton4, title):
     ax1.set_xlim([-1,1])
     ax1.set_ylim([-1,1])
     ax1.set_zlim([-1,1])
+    ax1.xaxis.set_major_locator(plt.MultipleLocator(0.5))
+    ax1.yaxis.set_major_locator(plt.MultipleLocator(0.5))
+    ax1.zaxis.set_major_locator(plt.MultipleLocator(0.5))
     ax1.legend()
 
     # Plotting the second pair of skeletons
@@ -73,6 +76,9 @@ def plot_skeletons2(skeleton1, skeleton2, skeleton3, skeleton4, title):
     ax2.set_xlabel('X')
     ax2.set_ylabel('Z')
     ax2.set_zlabel('Y')
+    ax2.xaxis.set_major_locator(plt.MultipleLocator(0.25))
+    ax2.yaxis.set_major_locator(plt.MultipleLocator(0.25))
+    ax2.zaxis.set_major_locator(plt.MultipleLocator(0.25))
     ax2.set_xlim([-0.3, 0.3])
     ax2.set_ylim([-0.3, 0.3])
     ax2.set_zlim([-0.3, 0.3])
@@ -111,6 +117,9 @@ def plot_skeletons3(skeleton1, skeleton2, skeleton3, skeleton4, title):
     ax1.set_xlim([-1,1])
     ax1.set_ylim([-1,1])
     ax1.set_zlim([-1,1])
+    ax1.xaxis.set_major_locator(plt.MultipleLocator(0.5))
+    ax1.yaxis.set_major_locator(plt.MultipleLocator(0.5))
+    ax1.zaxis.set_major_locator(plt.MultipleLocator(0.5))
     ax1.legend()
 
     # Plotting the second pair of skeletons
@@ -136,6 +145,9 @@ def plot_skeletons3(skeleton1, skeleton2, skeleton3, skeleton4, title):
     ax2.set_xlabel('X')
     ax2.set_ylabel('Z')
     ax2.set_zlabel('Y')
+    ax2.xaxis.set_major_locator(plt.MultipleLocator(0.5))
+    ax2.yaxis.set_major_locator(plt.MultipleLocator(0.5))
+    ax2.zaxis.set_major_locator(plt.MultipleLocator(0.5))
     ax2.set_xlim([-0.8,0.8])
     ax2.set_ylim([-0.8,0.8])
     ax2.set_zlim([-0.8,0.8])
@@ -169,7 +181,25 @@ def center_skeleton(skeleton):
 
     return skeleton
 
+def compute_bone_length(joint1, joint2):
+    """
+    Calculate the Euclidean distance between two joints (bone length).
+    """
+    return np.linalg.norm(joint2 - joint1)
+
+def scale_skeleton(skeleton, total_bone_length, desired_bone_length):
+    """
+    Compute the scaling factor given the total bone length and the desired bone length and
+    scale the skeleton by applying the scaling factor to each bone length.
+    """
+    scaling_factor=desired_bone_length / total_bone_length
+    scaled_skeleton = skeleton * scaling_factor
+    return scaled_skeleton
+
 def main():
+
+    desired_bone_length=4.5
+    
     if len(sys.argv) > 4:
         file_skeleton1 = sys.argv[1]
         frame_skeleton1 = sys.argv[2]
@@ -182,7 +212,14 @@ def main():
 
     skeleton1 = read_skeleton(file_skeleton1, frame_skeleton1)
     skeleton2 = read_skeleton(file_skeleton2, frame_skeleton2)
-
+    bone_length1=0
+    bone_length2=0
+    for bone, indices in bones.items():
+        idx1, idx2 = indices
+        bone_length1+=compute_bone_length(skeleton1[idx1],skeleton1[idx2])
+        bone_length2+=compute_bone_length(skeleton2[idx1],skeleton2[idx2])
+    skeleton1=scale_skeleton(skeleton1, bone_length1,desired_bone_length)
+    skeleton2=scale_skeleton(skeleton2, bone_length2,desired_bone_length)
     skeleton1 = center_skeleton(skeleton1)
     skeleton2 = center_skeleton(skeleton2)
 
