@@ -6,7 +6,7 @@ import sys
 import json
 
 # load the JSON file
-with open('../body_data/first_attempt/bodies0.json', 'r') as f:
+with open('../body_data/bodies0.json', 'r') as f:
     data = json.load(f)
 
 # Extract the "keypoint" vectors
@@ -48,11 +48,11 @@ for i, vector in enumerate(vectors):
     if i > 0:
         ax.collections[0].remove()  # Remove the scatter plot from the previous frame
     vector_array = np.array(vector)
-    ax.scatter(vector_array[:, 0], vector_array[:, 1], vector_array[:, 2], c=range(len(vector_array)), cmap='rainbow')
+    ax.scatter(vector_array[:, 0], vector_array[:, 1], vector_array[:, 2], color='orange')
     ax.set_title(f'Frame {i}')
-    ax.set_xlabel('X Label')
-    ax.set_ylabel('Y Label')
-    ax.set_zlabel('Z Label')
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
 
     # Save the plot as an image
     plt.savefig(f'frame_{i}.png')

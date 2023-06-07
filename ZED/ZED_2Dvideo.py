@@ -4,20 +4,21 @@ import json
 import sys
 import glob
 import sys
+import cv2
+import os
 
-def main():
+bones={"pelvis+abs": [0,1], "chest": [1,2], "neck": [3,26],
+       "Rclavicle":[3,11],"Rshoulder":[11,12],"Rarm":[12,13], "Rforearm":[13,14],
+       "chest1":[2,11],"chest2":[2,3],"chest3":[2,4],
+       "Lclavicle":[3,4],"Lshoulder":[4,5], "Larm":[5,6], "Lforearm":[6,7],
+       "Rhip":[0,22], "Rthigh":[22,23],"Rshin":[23,24],
+       "Lhip":[0,18], "Lthigh":[18,19],"Lshin":[19,20],
+       "Rfoot":[25,33],"Rankle":[24,33],"Lfoot":[21,32],"Lankle":[20,32]}
 
-    file_to_read=''
-
-    if len(sys.argv) > 1:
-        file_to_read = sys.argv[1]
-        #print("First argument:", first_argument)
-    else:
-        print("No file name provided.")
-        exit(1)
+def read_skeleton(file_name):
 
     # Load the JSON file
-    with open('../body_data/first_attempt/'+file_to_read+'.json', 'r') as f:
+    with open('../body_data/'+file_name+'.json', 'r') as f:
         data = json.load(f)
 
     tracking_state = []
@@ -30,20 +31,10 @@ def main():
             tracking_state.append(body_part['tracking_state'])
             action_state.append(body_part['action_state'])
 
-    keypoints = np.array(keypoints)
+    return np.array(keypoints),tracking_state,action_state
 
-    print(keypoints.shape)
+def plot_skeletons(vectors,tracking_state,action_state):
 
-    # Create a list of 2D vectors
-    vectors = []
-    for frame in keypoints:
-        frame_vectors = []
-        for point in frame:
-            x, y = point[0], point[1]
-            frame_vectors.append([x, y])
-        vectors.append(frame_vectors)
-
-    # Set up the plot
     fig, ax = plt.subplots()
     ax.invert_yaxis()
 
@@ -51,23 +42,18 @@ def main():
 
     completed_images=0
 
-    colors = ['b'] * keypoints.shape[1]  # Initialize all points as blue
-    #pelvis, left hip, right hip, left knee and right knee will be red
-    colors[0]  = 'r'
-    colors[18] = 'r'
-    colors[19] = 'r'
-    colors[22] = 'r'
-    colors[23] = 'r'
-
     # Loop through the vectors and plot each one
     for i, vector in enumerate(vectors):
         if i > 0:
             ax.collections[0].remove()  # Remove the scatter plot from the previous frame
         vector_array = np.array(vector)
-        ax.scatter(vector_array[:, 0], vector_array[:, 1], c=colors, cmap='rainbow')
+
+        ax.scatter(vector_array[:, 0], vector_array[:, 1], color='orange')
 
         ax.set_xlabel('X Label')
         ax.set_ylabel('Y Label')
+        ax.set_xlim([-0.6, 0.6])
+        ax.set_ylim([-1.5, 0.8])
         ax.set_title(f'Frame {i}-'+tracking_state[i]+'-'+action_state[i])
         # Save the plot as an image
         plt.savefig(f'frame_{i}.png')
@@ -78,9 +64,26 @@ def main():
         sys.stdout.write(f"\rPlotting data: {percentage}%")
         sys.stdout.flush()
 
-    # Create the video from the frames
-    import cv2
-    import os
+def main():
+
+    if len(sys.argv) > 1:
+        file_name = sys.argv[1]
+    else:
+        print("No file name provided.")
+        exit(1)
+
+    keypoints,tracking_state,action_state=read_skeleton(file_name)
+
+    # Create a list of 2D vectors
+    vectors = []
+    for frame in keypoints:
+        frame_vectors = []
+        for point in frame:
+            x, y = point[0], point[1]
+            frame_vectors.append([x, y])
+        vectors.append(frame_vectors)
+
+    plot_skeletons(vectors,tracking_state,action_state)
 
     print("")
     print("Building video...")
@@ -92,23 +95,14 @@ def main():
         size = (width,height)
         img_array.append(img)
 
-    # out = cv2.VideoWriter('output.mp4', cv2.VideoWriter_fourcc(*'mp4v'), 15, size)
-    #
-    # for i in range(len(img_array)):
-    #     out.write(img_array[i])
-    #
-    # out.release()
-
-    os.system('ffmpeg -framerate 60 -i frame_%d.png -c:v libx264 -r 30 -pix_fmt yuv420p output2D_'+file_to_read+'.mp4 -y')
-
-
+    os.system('ffmpeg -framerate 60 -i frame_%d.png -c:v libx264 -r 30 -pix_fmt yuv420p '+file_name+'.mp4 -y')
 
     # Remove all the files with pattern 'frame_*.png'
     print("Removing frames")
     for file in glob.glob('frame_*.png'):
         os.remove(file)
 
-    os.system('open output2D_'+file_to_read+'.mp4')
+    os.system('open output2D_'+file_name+'ZED.mp4')
 
 if __name__ == '__main__':
     main()

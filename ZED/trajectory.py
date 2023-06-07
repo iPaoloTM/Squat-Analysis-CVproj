@@ -4,14 +4,14 @@ import json
 from matplotlib import cm
 
 # load the JSON file
-with open('../body_data/first_attempt/bodies0.json', 'r') as f:
+with open('../body_data/Squat2.json', 'r') as f:
     data = json.load(f)
 
 # Extract the "keypoint" vectors
 keypoints = []
 for body in data.values():
     for body_part in body['body_list']:
-        keypoints.append(body_part['keypoint_2d'])
+        keypoints.append(body_part['keypoint'])
 keypoints = np.array(keypoints)
 
 # get the coordinates of the specific point (e.g. pelvis)
@@ -36,14 +36,14 @@ cmap = cm.get_cmap('RdBu_r')
 
 # Plot trajectory in 3D
 fig = plt.figure()
-ax = fig.add_subplot(111) #, projection='3d')
-ax.scatter(valid_points[:,0], valid_points[:,1], c=cmap(y_values_norm), s=6) #, valid_points[:,2],c=cmap(y_values_norm), alpha=0.8)
+ax = fig.add_subplot(111, projection='3d')
+ax.scatter(valid_points[:,0], valid_points[:,1], valid_points[:,2],c=cmap(y_values_norm), alpha=0.1)
 ax.invert_yaxis()
 ax.set_xlabel('X Label')
 ax.set_ylabel('Y Label')
-#ax.set_zlabel('Z Label')
-#ax.view_init(azim=-90, elev=90)
-ax.set_xlim([0, 800])
-ax.set_ylim([0, 800])
-#ax.set_zlim([-1, 1])
+ax.set_zlabel('Z Label')
+ax.view_init(azim=-90, elev=90)
+ax.set_xlim([-0.8, 0.8])
+ax.set_ylim([-0.8, 0.8])
+ax.set_zlim([-5, -3])
 plt.show()

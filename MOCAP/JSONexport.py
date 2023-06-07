@@ -12,10 +12,10 @@ def main():
         exit(1)
 
     take = csv_reader.Take()
-    take.readCSV("../body_data/second_attempt/"+file_to_read+".csv")
+    take.readCSV("../body_data/"+file_to_read+".csv")
 
     # Specify the output file path
-    output_file = "../body_data/second_attempt/"+file_to_read+"1.json"
+    output_file = "../body_data/"+file_to_read+"1.json"
 
     # Create a list to store the data for each frame
     frames_data = []
