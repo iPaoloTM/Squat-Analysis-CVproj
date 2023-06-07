@@ -14,9 +14,9 @@ for body in data.values():
         keypoints.append(body_part['keypoint_2d'])
 keypoints = np.array(keypoints)
 
-# get the coordinates of the specific point (e.g. nose)
+# get the coordinates of the specific point (e.g. pelvis)
 point_idx = 1
-point_coords = keypoints[:,point_idx,:] #(3164,18,2)
+point_coords = keypoints[:,point_idx,:]
 
 valid_points = []
 for i in range(len(point_coords)):
