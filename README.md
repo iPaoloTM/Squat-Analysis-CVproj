@@ -8,4 +8,4 @@ CV project for the 2023 course - A system to detect the correctness of a squat m
  
 ![Figure_1](https://github.com/iPaoloTM/Squat-Analysis-CVproj/assets/43711362/5032f890-d2dd-4d7a-a26d-6129acfb8ed0)
 
-MOCAP Skeletons in deep squat positions aligned with Procrustes transformation: correct squat (blue) and bad squat (orange)
+MOCAP Skeletons in deep squat positions aligned with Procrustes transformation: correct squat (blue) and bad squat (red)
