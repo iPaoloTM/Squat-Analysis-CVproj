@@ -31,23 +31,21 @@ HIP = 0
 
 bone_joint = poses_3d[0]
 
-# Generation of the skeleton
-colors = [[1, 0, 0] for i in range(len(body_edges))]
-
 keypoints = o3d.geometry.PointCloud()
-
+# Set the color for the keypoints
+keypoint_color = [1, 0, 0]  # Set the color to red
+keypoint_colors = [keypoint_color] * len(bone_joint)
 keypoints.points = o3d.utility.Vector3dVector(bone_joint)
 keypoints_center = keypoints.get_center()
 keypoints.points = o3d.utility.Vector3dVector(bone_joint)
+keypoints.colors = o3d.utility.Vector3dVector(keypoint_colors)
 
-skeleton_joints = o3d.geometry.LineSet()
-skeleton_joints.points = o3d.utility.Vector3dVector(bone_joint)
-center_skel = skeleton_joints.get_center()
 
-body_trajectory = o3d.geometry.LineSet()
-skeleton_joints.points = o3d.utility.Vector3dVector(bone_joint)
-skeleton_joints.lines = o3d.utility.Vector2iVector(body_edges)
-skeleton_joints.colors = o3d.utility.Vector3dVector(colors)
+skeleton_lines = o3d.geometry.LineSet()
+skeleton_color = [0, 0, 0]  # Set the color to red
+skeleton_colors = [skeleton_color] * len(body_edges)
+skeleton_lines.lines = o3d.utility.Vector2iVector(body_edges)
+skeleton_lines.colors = o3d.utility.Vector3dVector(skeleton_colors)
 
 vis = o3d.visualization.Visualizer()
 
@@ -56,9 +54,14 @@ WINDOW_HEIGHT=1080
 
 # Insertion of geometries in the visualizer
 vis.create_window(width=WINDOW_WIDTH, height=WINDOW_HEIGHT)
-vis.add_geometry(skeleton_joints)
 vis.add_geometry(keypoints)
-vis.add_geometry(body_trajectory)
+vis.add_geometry(skeleton_lines)
+
+# Customize visualization settings
+opt = vis.get_render_option()
+opt.point_size = 10
+
+vis.get_render_option().line_width = 5.0
 
 for i in range(len(poses_3d)):
     # If the measurements are correct the model updates
@@ -70,13 +73,13 @@ for i in range(len(poses_3d)):
     left_hand = new_joints[LFHAND]
     right_hand = new_joints[RHAND]
 
-    skeleton_joints.points = o3d.utility.Vector3dVector(new_joints)
+    skeleton_lines.points = o3d.utility.Vector3dVector(new_joints)
     keypoints.points = o3d.utility.Vector3dVector(new_joints)
 
     # Update of skeleton
-    vis.update_geometry(skeleton_joints)
+    vis.update_geometry(skeleton_lines)
     vis.update_geometry(keypoints)
-    vis.update_geometry(body_trajectory)
+    # vis.update_geometry(body_trajectory)
 
     vis.update_renderer()
     vis.poll_events()

@@ -6,7 +6,7 @@ import sys
 class Poses_3d:
     def get_poses(self, input_file):
         # Load the JSON file
-        with open('/Users/letiziagirardi/Desktop/UNIVERSITY/MAGISTRALE/SEMESTRE_2/Squat-Analysis-CVproj/body_data/second_attempt/'+input_file+'.json', 'r') as f:
+        with open('/Users/letiziagirardi/Desktop/UNIVERSITY/MAGISTRALE/SEMESTRE_2/Squat-Analysis-CVproj/body_data/'+input_file+'.json', 'r') as f:
             data = json.load(f)
 
         # Extract the "keypoint" vectors
@@ -25,7 +25,7 @@ class Poses_3d:
                 frame_vectors.append([x, y, z])
             vectors.append(frame_vectors)
 
-        # Loop through the vectors 
+        # Loop through the vectors
         for i, vector in enumerate(vectors):
             vector_array = np.array(vector)
 
