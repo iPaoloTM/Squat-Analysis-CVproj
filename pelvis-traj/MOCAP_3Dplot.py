@@ -81,7 +81,18 @@ def center_skeleton(skeleton):
     for i in range(len(skeleton)):
         skeleton[i] += displacement_vector
 
-    return skeleton
+    return skeleton, zero_in_foots
+
+def center_skeleton_pelvis(skeleton):
+
+    pelvis = skeleton[0]
+    # Compute the displacement vector
+    displacement_vector = -np.array(pelvis)
+
+    for i in range(len(skeleton)):
+        skeleton[i] += displacement_vector
+
+    return skeleton, pelvis
 
 def compute_angle(x1,y1,x2,y2):
 
