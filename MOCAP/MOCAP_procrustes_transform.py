@@ -83,7 +83,7 @@ def plot_skeletons(skeleton1, skeleton2, skeleton3, skeleton4, pose, title):
     ax2.yaxis.set_major_locator(plt.MultipleLocator(0.25))
     ax2.zaxis.set_major_locator(plt.MultipleLocator(0.25))
     ax2.view_init(azim=57, elev=5)
-    #plt.savefig(f'reference_samepleMOCAP_{pose}.png')
+    #plt.savefig(f'MOCAP_reference_sample/MOCAP_reference_sample_{pose}.png')
     plt.suptitle(title)
     plt.show()
 
@@ -155,7 +155,7 @@ def plot_lower_skeletons(skeleton1, skeleton2, skeleton3, skeleton4, pose, title
     ax2.view_init(azim=37, elev=6)
 
     plt.suptitle(title)
-    #plt.savefig(f'lowerbody_reference_sampleMOCAP_{pose}.png')
+    #plt.savefig(f'MOCAP_lower_reference_sample/MOCAP_lower_reference_sample_{pose}.png')
     plt.show()
 
 def read_skeleton(file_name, frame):
@@ -243,8 +243,6 @@ def main():
             temp=[keypositions1[i],keypositions2[i]]
             keypositions.append(temp)
 
-    keypositions=[[542, 448], [3421, 4280], [3516, 4392], [3601, 4480], [3873, 4646], [4000, 5112], [4080, 5207], [4174, 5307], [6090, 7195], [6229, 7284], [6338, 7338], [6719, 7353], [6849, 7354], [6919, 7377], [7008, 7439], [8893, 9365], [9003, 9531], [9106, 9661], [9435, 9988], [9600, 10140], [9694, 10178], [9803, 10214]]
-
     print(keypositions)
 
     tot_disparityP=0
@@ -252,68 +250,70 @@ def main():
     tot_lower_disparity=0
     tot_lower_disparityM=0
 
-    for i,x in enumerate(keypositions):
+    x=[10977, 11142]
+    #for i,x in enumerate(keypositions):
         #print(i)
-        skeleton1 = read_skeleton(file_skeleton1, x[0])
-        skeleton2 = read_skeleton(file_skeleton2, x[1])
-        bone_length1=0
-        bone_length2=0
-        for bone, indices in bones.items():
-            idx1, idx2 = indices
-            bone_length1+=compute_bone_length(skeleton1[idx1],skeleton1[idx2])
-            bone_length2+=compute_bone_length(skeleton2[idx1],skeleton2[idx2])
-        skeleton1=scale_skeleton(skeleton1, bone_length1,desired_bone_length)
-        skeleton2=scale_skeleton(skeleton2, bone_length2,desired_bone_length)
-        skeleton1 = center_skeleton(skeleton1)
-        skeleton2 = center_skeleton(skeleton2)
+    skeleton1 = read_skeleton(file_skeleton1, x[0])
+    skeleton2 = read_skeleton(file_skeleton2, x[1])
+    bone_length1=0
+    bone_length2=0
+    for bone, indices in bones.items():
+        idx1, idx2 = indices
+        bone_length1+=compute_bone_length(skeleton1[idx1],skeleton1[idx2])
+        bone_length2+=compute_bone_length(skeleton2[idx1],skeleton2[idx2])
+    skeleton1=scale_skeleton(skeleton1, bone_length1,desired_bone_length)
+    skeleton2=scale_skeleton(skeleton2, bone_length2,desired_bone_length)
+    skeleton1 = center_skeleton(skeleton1)
+    skeleton2 = center_skeleton(skeleton2)
 
-        # Padding the smaller skeleton with zeros to match the shape of the larger skeleton
-        max_points = max(skeleton1.shape[0], skeleton2.shape[0])
-        if skeleton1.shape[0] < max_points:
-            skeleton1 = np.pad(skeleton1, ((0, max_points - skeleton1.shape[0]), (0, 0)), mode='constant')
-        elif skeleton2.shape[0] < max_points:
-            skeleton2 = np.pad(skeleton2, ((0, max_points - skeleton2.shape[0]), (0, 0)), mode='constant')
+    # Padding the smaller skeleton with zeros to match the shape of the larger skeleton
+    max_points = max(skeleton1.shape[0], skeleton2.shape[0])
+    if skeleton1.shape[0] < max_points:
+        skeleton1 = np.pad(skeleton1, ((0, max_points - skeleton1.shape[0]), (0, 0)), mode='constant')
+    elif skeleton2.shape[0] < max_points:
+        skeleton2 = np.pad(skeleton2, ((0, max_points - skeleton2.shape[0]), (0, 0)), mode='constant')
 
-        # print("Skeleton1: ",skeleton1)
-        # print("Skeleton2: ",skeleton2)
+    # print("Skeleton1: ",skeleton1)
+    # print("Skeleton2: ",skeleton2)
 
-        #plot_skeletons(skeleton1,skeleton2,"Original Skeletons")
+    #plot_skeletons(skeleton1,skeleton2,"Original Skeletons")
 
-        # Reshape the arrays for Procrustes transformation
-        skeleton1_2d = skeleton1.reshape(21, 3)
-        skeleton2_2d = skeleton2.reshape(21, 3)
+    # Reshape the arrays for Procrustes transformation
+    skeleton1_2d = skeleton1.reshape(21, 3)
+    skeleton2_2d = skeleton2.reshape(21, 3)
 
-        mtx1, mtx2, disparity = procrustes(skeleton1_2d, skeleton2_2d)
-        aligned_skeleton1 = mtx1.reshape(21, 3)
-        aligned_skeleton2 = mtx2.reshape(21, 3)
+    mtx1, mtx2, disparity = procrustes(skeleton1_2d, skeleton2_2d)
+    aligned_skeleton1 = mtx1.reshape(21, 3)
+    aligned_skeleton2 = mtx2.reshape(21, 3)
 
-        plot_skeletons(skeleton1,skeleton2,aligned_skeleton1,aligned_skeleton2,i,"MOCAP Aligned Skeletons")
-        mpjpe=MPJPE(aligned_skeleton1,aligned_skeleton2)
-        print("Procrustes disparity:",str(disparity))
-        print("MPJPE",str(mpjpe))
-        tot_disparityP+=disparity
-        tot_disparityM+=mpjpe
+    plot_skeletons(skeleton1,skeleton2,aligned_skeleton1,lower_body_skeleton2,i,"MOCAP Aligned Skeletons")
+    mpjpe=MPJPE(aligned_skeleton1,aligned_skeleton2)
+    print("Procrustes disparity:",str(disparity))
+    print("MPJPE disparity:",str(mpjpe))
+    tot_disparityP+=disparity
+    tot_disparityM+=mpjpe
 
-        lower_body_skeleton1=skeleton1[lower_body_indices]
-        lower_body_skeleton2=skeleton2[lower_body_indices]
+    lower_body_skeleton1=skeleton1[lower_body_indices]
+    lower_body_skeleton2=skeleton2[lower_body_indices]
 
-        lower_body_skeleton1 = center_skeleton(lower_body_skeleton1)
-        lower_body_skeleton2 = center_skeleton(lower_body_skeleton2)
+    lower_body_skeleton1 = center_skeleton(lower_body_skeleton1)
+    lower_body_skeleton2 = center_skeleton(lower_body_skeleton2)
 
-        lower_body_skeleton1_2d = lower_body_skeleton1.reshape(9, 3)
-        lower_body_skeleton2_2d = lower_body_skeleton2.reshape(9, 3)
+    lower_body_skeleton1_2d = lower_body_skeleton1.reshape(9, 3)
+    lower_body_skeleton2_2d = lower_body_skeleton2.reshape(9, 3)
 
-        mtx1, mtx2, lower_disparity = procrustes(lower_body_skeleton1_2d, lower_body_skeleton2_2d)
+    mtx1, mtx2, lower_disparity = procrustes(lower_body_skeleton1_2d, lower_body_skeleton2_2d)
 
-        aligned_lower_body_skeleton1 = mtx1.reshape(9, 3)
-        aligned_lower_body_skeleton2 = mtx2.reshape(9, 3)
+    aligned_lower_body_skeleton1 = mtx1.reshape(9, 3)
+    aligned_lower_body_skeleton2 = mtx2.reshape(9, 3)
 
-        plot_lower_skeletons(lower_body_skeleton1,lower_body_skeleton2,aligned_lower_body_skeleton1,aligned_lower_body_skeleton2,i,"MOCAP Aligned Lower body skeletons")
-        lower_mpjpe=MPJPE(aligned_lower_body_skeleton1,aligned_lower_body_skeleton2)
-        print("lowerbody procrustes disparity:",str(lower_disparity))
-        print("lower MPJPE",str(lower_mpjpe))
-        tot_lower_disparityM+=lower_mpjpe
-        tot_lower_disparity+=lower_disparity
+    plot_lower_skeletons(lower_body_skeleton1,lower_body_skeleton2,aligned_lower_body_skeleton1,aligned_lower_body_skeleton2,i,"MOCAP Aligned Lower body skeletons")
+    lower_mpjpe=MPJPE(aligned_lower_body_skeleton1,aligned_lower_body_skeleton2)
+
+    print("lowerbody procrustes disparity:",str(lower_disparity))
+    print("LowerMPJPE:",str(lower_mpjpe))
+    tot_lower_disparityM+=lower_mpjpe
+    tot_lower_disparity+=lower_disparity
 
     print("Total disparity:",tot_disparityP/len(keypositions))
     print("Total lower disparity:",tot_lower_disparity/len(keypositions))

@@ -139,7 +139,7 @@ def compute_local_minima(skeletons):
     plt.plot(timestamps, pelvis_positions)
     plt.xlabel('Timestamps')
     plt.ylabel('Pelvis vertical position')
-    plt.title('Pelvis and Knee Position over Time')
+    #plt.title('Pelvis and Knee Position over Time')
     #plt.gca().legend(('Pelvis(Y)','Knees(Y)'))
     #plt.show()
 
@@ -149,7 +149,7 @@ def plot_pose(pose_state):
 
     colors = []
     for state in pose_state:
-        if state == "INTERMEDIATE":
+        if state == "RELEVANCE":
             colors.append('orange')
         else:
             colors.append('gray')
@@ -167,10 +167,10 @@ def compute_squat_positions(local_minima, pose_state, skeletons, title):
 
     '''
     This function return the time instans of the relevant position for the squat sequence
-    T-POSE: the beginning of the sequence
-    INTERMEDIATE: the squat is about to start or just finished
-    INTERMEDIATE_UP: in the middle of the ascending phase for the squat
-    INTERMEDIATE_DOWN: in the middle of the descending phase for the squat
+    Maximum: the beginning of the sequence
+    Intermediate_down: the squat is in descending phase
+    Squat: the minimum y-value achieved in the squatting phase
+    Intermediate_up: the squat is in ascending phase
     '''
 
     pose_index=[]
@@ -196,9 +196,7 @@ def compute_squat_positions(local_minima, pose_state, skeletons, title):
     '''
     for i,idx in enumerate(pose_state):
         pose_index.append([])
-        if pose_state[i]=="T-POSE":
-            Tpose_index.append(i)
-        elif pose_state[i]=="INTERMEDIATE":
+        if pose_state[i]=="INTERMEDIATE":
             if last_seen=="-":
                 pose_index[i]="intermediate"
                 phase+=1
@@ -210,13 +208,6 @@ def compute_squat_positions(local_minima, pose_state, skeletons, title):
                 pose_index[i-1]="intermediate"
         last_seen=pose_state[i]
 
-    '''
-    Find and mark the T pose instant with an average of the instants when the person is int T-pose
-
-    '''
-    t_pose_index = int(np.mean(Tpose_index))
-
-    #pose_index[t_pose_index]="T-POSE"
 
     '''
       SQUAT POSITIONS
@@ -258,7 +249,9 @@ def compute_squat_positions(local_minima, pose_state, skeletons, title):
     for x in deep_squats_index:
         pose_index[x]="Squat"
 
-    #print(deep_squats_index)
+    '''
+    Here we search for local maxima, the maximum y-value of the pelvis before the squat
+    '''
 
     local_maxima=[]
 
@@ -290,8 +283,7 @@ def compute_squat_positions(local_minima, pose_state, skeletons, title):
 
     '''
        INTERMEDIATE POSITIONS
-       Now we understand when the squatting action is about to start or when it's finished, and mark the corresponding
-       time instant. We also mark two medium positions for both descending (intermediate_down) and ascending phase (intermediate_up)
+       Now we mark the two medium positions for both descending (intermediate_down) and ascending phase (intermediate_up)
     '''
 
     i=0
@@ -304,21 +296,19 @@ def compute_squat_positions(local_minima, pose_state, skeletons, title):
             pose_index.pop(i)
         if pose_index[i]=='maximum' and i<deep_squats_index[j]:
             begin=i
-            #print("AAAA")
-            #print(skeletons[i][0][1])
         if pose_index[i]=='Squat':
-            #print(skeletons[i][0][1])
             dist=abs(skeletons[begin][0][1]-skeletons[i][0][1])
-            #print("DIST",str(dist))
-            pos1=skeletons[begin][0][1]-((dist)/3)
-            pos2=skeletons[begin][0][1]-(((dist)*2)/3)
-            #print("INT1",str(pos1))
-            #print("INT2",str(pos2))
+            pos1=skeletons[begin][0][1]-((dist)/10)
+            pos2=skeletons[begin][0][1]-(((dist)*2)/10)
+            pos3=skeletons[begin][0][1]-(((dist)*3)/10)
+            pos4=skeletons[begin][0][1]-(((dist)*4)/10)
+            pos5=skeletons[begin][0][1]-(((dist)*5)/10)
+            pos6=skeletons[begin][0][1]-(((dist)*6)/10)
+            pos7=skeletons[begin][0][1]-(((dist)*7)/10)
+            pos8=skeletons[begin][0][1]-(((dist)*8)/10)
+            pos9=skeletons[begin][0][1]-(((dist)*9)/10)
             x=i
             while x>begin:
-
-                #print(f'[1]({skeletons[x][0][1]})-({pos1})=',str(abs(skeletons[x][0][1]-pos1)))
-                #print(f'[2]({skeletons[x][0][1]})-({pos2})=',str(abs(skeletons[x][0][1]-pos2)))
                 if abs(skeletons[x][0][1]-pos1)<confidence_down:
                     #print("DOWN 1 "+str(x))
                     pose_index[x]='intermediate_down1'
@@ -327,6 +317,34 @@ def compute_squat_positions(local_minima, pose_state, skeletons, title):
                     #print("DOWN 2 "+str(x))
                     pose_index[x]='intermediate_down2'
                     pos2=100
+                elif abs(skeletons[x][0][1]-pos3)<confidence_down:
+                    #print("DOWN 2 "+str(x))
+                    pose_index[x]='intermediate_down3'
+                    pos3=100
+                elif abs(skeletons[x][0][1]-pos4)<confidence_down:
+                    #print("DOWN 2 "+str(x))
+                    pose_index[x]='intermediate_down4'
+                    pos4=100
+                elif abs(skeletons[x][0][1]-pos5)<confidence_down:
+                    #print("DOWN 2 "+str(x))
+                    pose_index[x]='intermediate_down5'
+                    pos5=100
+                elif abs(skeletons[x][0][1]-pos6)<confidence_down:
+                    #print("DOWN 2 "+str(x))
+                    pose_index[x]='intermediate_down6'
+                    pos6=100
+                elif abs(skeletons[x][0][1]-pos7)<confidence_down:
+                    #print("DOWN 2 "+str(x))
+                    pose_index[x]='intermediate_down7'
+                    pos7=100
+                elif abs(skeletons[x][0][1]-pos8)<confidence_down:
+                    #print("DOWN 2 "+str(x))
+                    pose_index[x]='intermediate_down8'
+                    pos8=100
+                elif abs(skeletons[x][0][1]-pos9)<confidence_down:
+                    #print("DOWN 2 "+str(x))
+                    pose_index[x]='intermediate_down9'
+                    pos9=100
                 x-=1
             j+=1 #next squat
         i+=1 #next frame
@@ -344,31 +362,59 @@ def compute_squat_positions(local_minima, pose_state, skeletons, title):
         if pose_index[i]=='maximum' and i>deep_squats_index[j]:
             finish=i
         if pose_index[i]=='Squat':
-            # print("------------------------")
             dist=abs(skeletons[finish][0][1]-skeletons[i][0][1])
-            pos1=skeletons[i][0][1]+((dist)/3)
-            pos2=skeletons[i][0][1]+(((dist)*2)/3)
-            # print("DIST=",str(dist))
-            # print("pos1=",str(pos1))
-            # print("pos2=",str(pos2))
-            # print("------------------------")
+            pos1=skeletons[i][0][1]+((dist)/10)
+            pos2=skeletons[i][0][1]+(((dist)*2)/10)
+            pos3=skeletons[i][0][1]+(((dist)*3)/10)
+            pos4=skeletons[i][0][1]+(((dist)*4)/10)
+            pos5=skeletons[i][0][1]+(((dist)*5)/10)
+            pos6=skeletons[i][0][1]+(((dist)*6)/10)
+            pos7=skeletons[i][0][1]+(((dist)*7)/10)
+            pos8=skeletons[i][0][1]+(((dist)*8)/10)
+            pos9=skeletons[i][0][1]+(((dist)*9)/10)
             x=i
             while x<finish:
-                #print(f"({skeletons[x][0][1]})-({pos1})=",str(abs(skeletons[x][0][1]-pos1)))
-                #print(f"({skeletons[x][0][1]})-({pos2})=",str(abs(skeletons[x][0][1]-pos1)))
                 if abs(skeletons[x][0][1]-pos1)<confidence_up:
-                    #print("UP 1 "+str(j))
+                    #print("DOWN 1 "+str(x))
                     pose_index[x]='intermediate_up1'
                     pos1=100 #stop searchiing for another match
                 elif abs(skeletons[x][0][1]-pos2)<confidence_up:
-                    #print("UP 2 "+str(j))
+                    #print("DOWN 2 "+str(x))
                     pose_index[x]='intermediate_up2'
                     pos2=100
-
+                elif abs(skeletons[x][0][1]-pos3)<confidence_up:
+                    #print("DOWN 2 "+str(x))
+                    pose_index[x]='intermediate_up3'
+                    pos3=100
+                elif abs(skeletons[x][0][1]-pos4)<confidence_up:
+                    #print("DOWN 2 "+str(x))
+                    pose_index[x]='intermediate_up4'
+                    pos4=100
+                elif abs(skeletons[x][0][1]-pos5)<confidence_up:
+                    #print("DOWN 2 "+str(x))
+                    pose_index[x]='intermediate_up5'
+                    pos5=100
+                elif abs(skeletons[x][0][1]-pos6)<confidence_up:
+                    #print("DOWN 2 "+str(x))
+                    pose_index[x]='intermediate_up6'
+                    pos6=100
+                elif abs(skeletons[x][0][1]-pos7)<confidence_up:
+                    #print("DOWN 2 "+str(x))
+                    pose_index[x]='intermediate_up7'
+                    pos7=100
+                elif abs(skeletons[x][0][1]-pos8)<confidence_up:
+                    #print("DOWN 2 "+str(x))
+                    pose_index[x]='intermediate_up8'
+                    pos8=100
+                elif abs(skeletons[x][0][1]-pos9)<confidence_up:
+                    #print("DOWN 2 "+str(x))
+                    pose_index[x]='intermediate_up9'
+                    pos9=100
                 x+=1
-            #xxexit(0)
             j-=1
         i-=1
+
+    '''coloring the pose_state array. we extend the squatting phase from the descending up to the descending'''
 
     flag=False
     for i in range(len(pose_index)):
@@ -377,14 +423,14 @@ def compute_squat_positions(local_minima, pose_state, skeletons, title):
         elif pose_index[i]=='intermediate_up2':
             flag=False
         if flag==True:
-            pose_state[i]='INTERMEDIATE'
+                pose_state[i]='RELEVANCE'
 
     pose_index2=[]
     for i,x in enumerate(pose_index):
         if x!=[]:
             pose_index2.append([i,x])
 
-    #print(np.array(pose_index2))
+    print(np.array(pose_index2).shape)
 
     ################################################################################
     pelvis_positions=[]
@@ -405,7 +451,6 @@ def compute_squat_positions(local_minima, pose_state, skeletons, title):
     plt.show()
 
     return indici
-
 
 def main(file_name):
 

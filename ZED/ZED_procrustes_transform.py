@@ -53,7 +53,7 @@ def plot_skeletons(skeleton1, skeleton2, skeleton3, skeleton4, pose,title):
     ax1.xaxis.set_major_locator(plt.MultipleLocator(0.5))
     ax1.yaxis.set_major_locator(plt.MultipleLocator(0.5))
     ax1.zaxis.set_major_locator(plt.MultipleLocator(0.5))
-    ax1.view_init(azim=57, elev=6)
+    ax1.view_init(azim=151, elev=6)
     #ax1.legend()
 
     # Plotting the second pair of skeletons
@@ -85,8 +85,8 @@ def plot_skeletons(skeleton1, skeleton2, skeleton3, skeleton4, pose,title):
     ax2.set_xlim([-0.3, 0.3])
     ax2.set_ylim([-0.3, 0.3])
     ax2.set_zlim([-0.3, 0.3])
-    ax2.view_init(azim=57, elev=5)
-    #plt.savefig(f'reference_samepleZED_{pose}.png')
+    ax2.view_init(azim=140, elev=5)
+    #plt.savefig(f'ZED_reference_sample/ZED_reference_sample_{pose}.png')
     plt.suptitle(title)
     plt.show()
 
@@ -123,7 +123,7 @@ def plot_lower_skeletons(skeleton1, skeleton2, skeleton3, skeleton4, pose, title
     ax1.xaxis.set_major_locator(plt.MultipleLocator(0.5))
     ax1.yaxis.set_major_locator(plt.MultipleLocator(0.5))
     ax1.zaxis.set_major_locator(plt.MultipleLocator(0.5))
-    ax1.view_init(azim=57, elev=6)
+    ax1.view_init(azim=151, elev=6)
 
     # Plotting the second pair of skeletons
     ax2 = fig.add_subplot(122, projection='3d')
@@ -154,10 +154,10 @@ def plot_lower_skeletons(skeleton1, skeleton2, skeleton3, skeleton4, pose, title
     ax2.set_xlim([-0.8,0.8])
     ax2.set_ylim([-0.8,0.8])
     ax2.set_zlim([-0.3,1.2])
-    ax2.view_init(azim=37, elev=6)
+    ax2.view_init(azim=144, elev=6)
 
     plt.suptitle(title)
-    #plt.savefig(f'lowerbody_reference_sampleZED_{pose}.png')
+    #plt.savefig(f'ZED_lower_reference_sample/ZED_lower_reference_sample_{pose}.png')
     plt.show()
 
 def read_skeleton(file_name, frame):
@@ -253,7 +253,6 @@ def main():
     tot_lower_disparityM=0
 
     for i,x in enumerate(keypositions):
-        print(i)
         skeleton1 = read_skeleton(file_skeleton1, x[0])
         skeleton2 = read_skeleton(file_skeleton2, x[1])
         bone_length1=0
@@ -290,7 +289,7 @@ def main():
         plot_skeletons(skeleton1,skeleton2,aligned_skeleton1,aligned_skeleton2,i,"ZED Aligned Skeletons")
         mpjpe=MPJPE(aligned_skeleton1,aligned_skeleton2)
         print("Procrustes disparity:",str(disparity))
-        print("MPJPE",str(mpjpe))
+        print("MPJPE disparity:",str(mpjpe))
         tot_disparityP+=disparity
         tot_disparityM+=mpjpe
 
@@ -311,9 +310,10 @@ def main():
         plot_lower_skeletons(lower_body_skeleton1,lower_body_skeleton2,aligned_lower_body_skeleton1,aligned_lower_body_skeleton2,i,"ZED Aligned Lower body skeletons")
         lower_mpjpe=MPJPE(aligned_lower_body_skeleton1,aligned_lower_body_skeleton2)
         print("lowerbody procrustes disparity:",str(lower_disparity))
-        print("lowerbody MPJPE:",str(lower_mpjpe))
+        print("LowerMPJPE:",str(lower_mpjpe))
         tot_lower_disparityM+=lower_mpjpe
         tot_lower_disparity+=lower_disparity
+
 
     print("Total disparity:",tot_disparityP/len(keypositions))
     print("Total lower disparity:",tot_lower_disparity/len(keypositions))

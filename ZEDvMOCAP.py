@@ -66,7 +66,7 @@ def plot_skeletons(skeleton1, skeleton2, skeleton3, skeleton4, pose, title):
     ax1.set_xlim([-1,1])
     ax1.set_ylim([-1,1])
     ax1.set_zlim([-1,1])
-    ax1.view_init(azim=-57, elev=6)
+    ax1.view_init(azim=49, elev=8)
     ax1.xaxis.set_major_locator(plt.MultipleLocator(0.5))
     ax1.yaxis.set_major_locator(plt.MultipleLocator(0.5))
     ax1.zaxis.set_major_locator(plt.MultipleLocator(0.5))
@@ -97,12 +97,12 @@ def plot_skeletons(skeleton1, skeleton2, skeleton3, skeleton4, pose, title):
     ax2.set_xlim([-0.3,0.3])
     ax2.set_ylim([-0.3,0.3])
     ax2.set_zlim([-0.3,0.3])
-    ax2.view_init(azim=37, elev=5)
+    ax2.view_init(azim=37, elev=8)
     ax2.xaxis.set_major_locator(plt.MultipleLocator(0.25))
     ax2.yaxis.set_major_locator(plt.MultipleLocator(0.25))
     ax2.zaxis.set_major_locator(plt.MultipleLocator(0.25))
     plt.suptitle(title+str(pose))
-    #plt.savefig(f'frame_{pose}.png')
+    plt.savefig(f'ZEDvMOCAP/ZEDvMOCAP_{pose}.png')
     #plt.show()
 
 def plot_lower_skeletons(skeleton1, skeleton2, skeleton3, skeleton4, title):
@@ -393,16 +393,6 @@ def main():
         tot_lower_disparity+=lower_disparity
 
     print("Total disparity:",tot_disparity/len(keypositions))
-
-    fig = plt.figure(figsize=(12, 6))
-    time = np.arange(len(keypositions))
-
-    plt.plot(time, mpjpe_array)
-
-    plt.title('MPJPE Over Time')
-    plt.xlabel('Time')
-    plt.ylabel('MPJPE')
-    plt.show()
 
     #os.system(' ffmpeg -framerate 20 -i frame_%d.png -c:v libx264 -r 30 -pix_fmt yuv420p ZEDvMOCAP.mp4 -y')
 
