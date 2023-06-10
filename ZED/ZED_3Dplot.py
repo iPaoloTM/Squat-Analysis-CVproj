@@ -45,7 +45,7 @@ def plot_skeleton(skeleton):
         ax.plot([x[idx1], x[idx2]], [z[idx1], z[idx2]], [y[idx1], y[idx2]], color='orange')
 
     ax.plot([skeleton[0][0], skeleton[0][0]], [skeleton[0][1], skeleton[0][1]], [skeleton[0][2]+1,skeleton[0][2]-1], 'r--', label='Vertical Line')
-    ax.plot([skeleton[0][0], skeleton[1][0]], [skeleton[0][2], skeleton[1][2]], [skeleton[0][1],skeleton[1][1]], 'r--', label='Back line Line')
+    ax.plot([skeleton[0][0], skeleton[2][0]], [skeleton[0][2], skeleton[2][2]], [skeleton[0][1],skeleton[2][1]], 'r--', label='Back line Line')
 
     ax.set_xlabel('X')
     ax.set_ylabel('Z')
@@ -88,25 +88,26 @@ def scale_skeleton(skeleton, total_bone_length, desired_bone_length):
     scaled_skeleton = skeleton * scaling_factor
     return scaled_skeleton
 
-def compute_angle(x1,y1,x2,y2,x3,y3,x4,y4):
+def compute_angle(x1,y1,x2,y2):
 
-    if (((x2 - x1)!=0) & ((x4 - x3)!=0)):
+    # x1=0.09
+    # y1=0.06
+    # x2=0.5
+    # y2=0.5
+
+    print(x1)
+    print(y1)
+    print(x2)
+    print(y2)
+
+    if (x2 - x1)!=0:
         slope1 = (y2 - y1) / (x2 - x1)
-        slope2 = (y4 - y3) / (x4 - x3)
-    elif (((x2 - x1)==0) & ((x4 - x3)==0)):
+    elif (x2-x1)==0:
         slope1=math.inf
-        slope2=math.inf
-    elif ((x2-x1)==0):
-        slope1=math.inf
-        slope2 = (y4 - y3) / (x4 - x3)
-    elif ((x4 - x3)==0):
-        slope1 = (y2 - y1) / (x2 - x1)
-        slope2=math.inf
 
     angle1 = math.degrees(math.atan(slope1))
-    angle2 = math.degrees(math.atan(slope2))
 
-    angle_diff = abs(angle2 - angle1)
+    angle_diff = abs(90 - angle1)
 
     return angle_diff
 
@@ -129,9 +130,10 @@ def main():
         bone_length+=compute_bone_length(skeleton[idx1],skeleton[idx2])
     skeleton=scale_skeleton(skeleton, bone_length,desired_bone_length)
     skeleton = center_skeleton(skeleton)
-    print(skeleton)
 
-    print("Back angle:",compute_angle(skeleton[0][0],skeleton[0][1], skeleton[1][0], skeleton[1][1],skeleton[0][0],skeleton[0][1],skeleton[0][0],skeleton[0][1]+0.5))
+    theta=compute_angle(skeleton[0][2],skeleton[0][1], skeleton[2][2], skeleton[2][1])
+
+    print("Back angle:",theta)
 
     plot_skeleton(skeleton)
 

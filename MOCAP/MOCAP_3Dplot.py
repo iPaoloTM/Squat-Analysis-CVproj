@@ -48,11 +48,7 @@ def plot_skeleton(skeleton):
 
     ax.plot([skeleton[0][0], skeleton[0][0]], [skeleton[0][1], skeleton[0][1]], [skeleton[0][2]-1, skeleton[0][2]+1], 'r--', label='Vertical Line')
 
-    vline_x = skeleton[3][0]
-    vline_y = skeleton[3][1]
-    vline_z = skeleton[3][2]
-
-    ax.plot([skeleton[2][0], skeleton[1][0]], [skeleton[2][2], skeleton[1][2]], [skeleton[2][1], skeleton[1][1]],  'r--', label='Back Line')
+    ax.plot([skeleton[2][0], skeleton[0][0]], [skeleton[2][2], skeleton[0][2]], [skeleton[2][1], skeleton[0][1]],  'r--', label='Back Line')
 
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
@@ -82,6 +78,16 @@ def center_skeleton(skeleton):
 
 def compute_angle(x1,y1,x2,y2):
 
+    # x1=0.09
+    # y1=0.06
+    # x2=0.5
+    # y2=0.5
+
+    print(x1)
+    print(y1)
+    print(x2)
+    print(y2)
+
     if (x2 - x1)!=0:
         slope1 = (y2 - y1) / (x2 - x1)
     elif (x2-x1)==0:
@@ -89,7 +95,9 @@ def compute_angle(x1,y1,x2,y2):
 
     angle1 = math.degrees(math.atan(slope1))
 
-    return angle1
+    angle_diff = abs(90 - angle1)
+
+    return angle_diff
 
 def compute_bone_length(joint1, joint2):
     """
@@ -125,11 +133,11 @@ def main():
     skeleton=scale_skeleton(skeleton, bone_length,desired_bone_length)
     skeleton = center_skeleton(skeleton)
 
-    print("Back angle:",compute_angle(skeleton[2][2],skeleton[2][0], skeleton[1][2], skeleton[1][0]))
+    theta = compute_angle(skeleton[0][0],skeleton[0][1],skeleton[2][0],skeleton[2][1])
+
+    print("Back angle:",theta)
 
     plot_skeleton(skeleton)
-
-
 
 if __name__ == '__main__':
     main()

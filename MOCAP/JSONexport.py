@@ -1,12 +1,12 @@
-import optitrack.csv_reader as csv_reader
 import json
 import sys
+import optitrack.csv_reader as csv_reader
 
 def main():
 
-    if len(sys.argv) > 2:
+    if len(sys.argv) > 1:
         file_to_read = sys.argv[1]
-        label = sys.argv[2]
+        #label = sys.argv[2]
     else:
         print("Not enough arguments")
         exit(1)

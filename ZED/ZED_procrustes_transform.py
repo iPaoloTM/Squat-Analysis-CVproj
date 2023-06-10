@@ -1,9 +1,11 @@
 import numpy as np
 from scipy.spatial import procrustes
+from scipy.linalg import orthogonal_procrustes
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import sys
 import json
+import ZED_alignment as ZED
 
 bones={"pelvis+abs": [0,1], "chest": [1,2], "neck": [3,26],
        "Rclavicle":[3,11],"Rshoulder":[11,12],"Rarm":[12,13], "Rforearm":[13,14],
@@ -18,7 +20,7 @@ lower_bones={"Rhip":[0,1],"Rthigh":[1,2],"Rshin":[2,3],"Rankle":[3,4],"Rfoot1":[
 
 lower_body_indices = [0, 18, 19, 20, 21, 22, 23, 24, 25, 32, 33]
 
-def plot_skeletons2(skeleton1, skeleton2, skeleton3, skeleton4, title):
+def plot_skeletons(skeleton1, skeleton2, skeleton3, skeleton4, pose,title):
 
     fig = plt.figure(figsize=(12, 6))
 
@@ -51,7 +53,8 @@ def plot_skeletons2(skeleton1, skeleton2, skeleton3, skeleton4, title):
     ax1.xaxis.set_major_locator(plt.MultipleLocator(0.5))
     ax1.yaxis.set_major_locator(plt.MultipleLocator(0.5))
     ax1.zaxis.set_major_locator(plt.MultipleLocator(0.5))
-    ax1.legend()
+    ax1.view_init(azim=57, elev=6)
+    #ax1.legend()
 
     # Plotting the second pair of skeletons
     ax2 = fig.add_subplot(122, projection='3d')
@@ -82,12 +85,12 @@ def plot_skeletons2(skeleton1, skeleton2, skeleton3, skeleton4, title):
     ax2.set_xlim([-0.3, 0.3])
     ax2.set_ylim([-0.3, 0.3])
     ax2.set_zlim([-0.3, 0.3])
-    ax2.legend()
-
+    ax2.view_init(azim=57, elev=5)
+    #plt.savefig(f'reference_samepleZED_{pose}.png')
     plt.suptitle(title)
     plt.show()
 
-def plot_skeletons3(skeleton1, skeleton2, skeleton3, skeleton4, title):
+def plot_lower_skeletons(skeleton1, skeleton2, skeleton3, skeleton4, pose, title):
 
     fig = plt.figure(figsize=(12, 6))
 
@@ -120,7 +123,7 @@ def plot_skeletons3(skeleton1, skeleton2, skeleton3, skeleton4, title):
     ax1.xaxis.set_major_locator(plt.MultipleLocator(0.5))
     ax1.yaxis.set_major_locator(plt.MultipleLocator(0.5))
     ax1.zaxis.set_major_locator(plt.MultipleLocator(0.5))
-    ax1.legend()
+    ax1.view_init(azim=57, elev=6)
 
     # Plotting the second pair of skeletons
     ax2 = fig.add_subplot(122, projection='3d')
@@ -150,13 +153,15 @@ def plot_skeletons3(skeleton1, skeleton2, skeleton3, skeleton4, title):
     ax2.zaxis.set_major_locator(plt.MultipleLocator(0.5))
     ax2.set_xlim([-0.8,0.8])
     ax2.set_ylim([-0.8,0.8])
-    ax2.set_zlim([-0.8,0.8])
-    ax2.legend()
+    ax2.set_zlim([-0.3,1.2])
+    ax2.view_init(azim=37, elev=6)
 
     plt.suptitle(title)
+    #plt.savefig(f'lowerbody_reference_sampleZED_{pose}.png')
     plt.show()
 
 def read_skeleton(file_name, frame):
+
     skeleton=[]
     # Load the second JSON file
     with open('../body_data/'+file_name+'.json', 'r') as f:
@@ -170,6 +175,9 @@ def read_skeleton(file_name, frame):
     return np.array(skeleton[0])
 
 def center_skeleton(skeleton):
+    """
+    Align the skeleton's pelvis to the world center [0,0,0]
+    """
 
     pelvis_position = skeleton[0]
 
@@ -196,74 +204,121 @@ def scale_skeleton(skeleton, total_bone_length, desired_bone_length):
     scaled_skeleton = skeleton * scaling_factor
     return scaled_skeleton
 
+def MPJPE(skeleton1, skeleton2):
+    difference=[]
+
+    if skeleton1.shape == skeleton2.shape:
+        for i,joint in enumerate(skeleton1):
+            difference.append(np.linalg.norm(skeleton1[i] - skeleton2[i]))
+
+    res=0
+    for x in difference:
+        res+=x
+
+    return res/len(skeleton1)
+
 def main():
 
     desired_bone_length=4.5
-    
-    if len(sys.argv) > 4:
+
+    if len(sys.argv) > 2:
         file_skeleton1 = sys.argv[1]
-        frame_skeleton1 = sys.argv[2]
-        file_skeleton2 = sys.argv[3]
-        frame_skeleton2 = sys.argv[4]
-        print("Computing alignment between "+file_skeleton1+" at frame "+frame_skeleton1+" and "+file_skeleton2+" at frame "+frame_skeleton2)
+        #frame_skeleton1 = sys.argv[2]
+        file_skeleton2 = sys.argv[2]
+        #frame_skeleton2 = sys.argv[4]
+        #print("Computing alignment between "+file_skeleton1+" at frame "+frame_skeleton1+" and "+file_skeleton2+" at frame "+frame_skeleton2)
     else:
         print("Not enough arguments")
         exit(1)
 
-    skeleton1 = read_skeleton(file_skeleton1, frame_skeleton1)
-    skeleton2 = read_skeleton(file_skeleton2, frame_skeleton2)
-    bone_length1=0
-    bone_length2=0
-    for bone, indices in bones.items():
-        idx1, idx2 = indices
-        bone_length1+=compute_bone_length(skeleton1[idx1],skeleton1[idx2])
-        bone_length2+=compute_bone_length(skeleton2[idx1],skeleton2[idx2])
-    skeleton1=scale_skeleton(skeleton1, bone_length1,desired_bone_length)
-    skeleton2=scale_skeleton(skeleton2, bone_length2,desired_bone_length)
-    skeleton1 = center_skeleton(skeleton1)
-    skeleton2 = center_skeleton(skeleton2)
+    keypositions1=ZED.main(file_skeleton1)
+    keypositions2=ZED.main(file_skeleton2)
 
-    # Padding the smaller skeleton with zeros to match the shape of the larger skeleton
-    max_points = max(skeleton1.shape[0], skeleton2.shape[0])
-    if skeleton1.shape[0] < max_points:
-        skeleton1 = np.pad(skeleton1, ((0, max_points - skeleton1.shape[0]), (0, 0)), mode='constant')
-    elif skeleton2.shape[0] < max_points:
-        skeleton2 = np.pad(skeleton2, ((0, max_points - skeleton2.shape[0]), (0, 0)), mode='constant')
+    keypositions=[]
 
-    print("Skeleton1: ",skeleton1)
-    print("Skeleton2: ",skeleton2)
+    if len(keypositions1)<len(keypositions2):
+        for i in range(len(keypositions1)):
+            temp=[keypositions1[i],keypositions2[i]]
+            keypositions.append(temp)
+    else:
+        for i in range(len(keypositions2)):
+            temp=[keypositions1[i],keypositions2[i]]
+            keypositions.append(temp)
 
-    #plot_skeletons(skeleton1,skeleton2,"Original Skeletons")
+    print(keypositions)
 
-    # Reshape the arrays for Procrustes transformation
-    skeleton1_2d = skeleton1.reshape(34, 3)
-    skeleton2_2d = skeleton2.reshape(34, 3)
+    tot_disparityP=0
+    tot_disparityM=0
+    tot_lower_disparity=0
+    tot_lower_disparityM=0
 
-    mtx1, mtx2, disparity = procrustes(skeleton1_2d, skeleton2_2d)
-    aligned_skeleton1 = mtx1.reshape(34, 3)
-    aligned_skeleton2 = mtx2.reshape(34, 3)
+    for i,x in enumerate(keypositions):
+        print(i)
+        skeleton1 = read_skeleton(file_skeleton1, x[0])
+        skeleton2 = read_skeleton(file_skeleton2, x[1])
+        bone_length1=0
+        bone_length2=0
+        for bone, indices in bones.items():
+            idx1, idx2 = indices
+            bone_length1+=compute_bone_length(skeleton1[idx1],skeleton1[idx2])
+            bone_length2+=compute_bone_length(skeleton2[idx1],skeleton2[idx2])
+        skeleton1=scale_skeleton(skeleton1, bone_length1,desired_bone_length)
+        skeleton2=scale_skeleton(skeleton2, bone_length2,desired_bone_length)
+        skeleton1 = center_skeleton(skeleton1)
+        skeleton2 = center_skeleton(skeleton2)
 
-    plot_skeletons2(skeleton1,skeleton2,aligned_skeleton1,aligned_skeleton2,"ZED Aligned Skeletons")
+        # Padding the smaller skeleton with zeros to match the shape of the larger skeleton
+        max_points = max(skeleton1.shape[0], skeleton2.shape[0])
+        if skeleton1.shape[0] < max_points:
+            skeleton1 = np.pad(skeleton1, ((0, max_points - skeleton1.shape[0]), (0, 0)), mode='constant')
+        elif skeleton2.shape[0] < max_points:
+            skeleton2 = np.pad(skeleton2, ((0, max_points - skeleton2.shape[0]), (0, 0)), mode='constant')
 
-    print("General Disparity:",disparity)
+        #print("Skeleton1: ",skeleton1)
+        #print("Skeleton2: ",skeleton2)
 
-    lower_body_skeleton1=skeleton1[lower_body_indices]
-    lower_body_skeleton2=skeleton2[lower_body_indices]
+        #plot_skeletons(skeleton1,skeleton2,"Original Skeletons")
 
-    lower_body_skeleton1 = center_skeleton(lower_body_skeleton1)
-    lower_body_skeleton2 = center_skeleton(lower_body_skeleton2)
+        # Reshape the arrays for Procrustes transformation
+        skeleton1_2d = skeleton1.reshape(34, 3)
+        skeleton2_2d = skeleton2.reshape(34, 3)
 
-    lower_body_skeleton1_2d = lower_body_skeleton1.reshape(11, 3)
-    lower_body_skeleton2_2d = lower_body_skeleton2.reshape(11, 3)
+        mtx1, mtx2, disparity = procrustes(skeleton1_2d, skeleton2_2d)
+        aligned_skeleton1 = mtx1.reshape(34, 3)
+        aligned_skeleton2 = mtx2.reshape(34, 3)
 
-    mtx1, mtx2, disparity = procrustes(lower_body_skeleton1_2d, lower_body_skeleton2_2d)
+        plot_skeletons(skeleton1,skeleton2,aligned_skeleton1,aligned_skeleton2,i,"ZED Aligned Skeletons")
+        mpjpe=MPJPE(aligned_skeleton1,aligned_skeleton2)
+        print("Procrustes disparity:",str(disparity))
+        print("MPJPE",str(mpjpe))
+        tot_disparityP+=disparity
+        tot_disparityM+=mpjpe
 
-    aligned_lower_body_skeleton1 = mtx1.reshape(11, 3)
-    aligned_lower_body_skeleton2 = mtx2.reshape(11, 3)
+        lower_body_skeleton1=skeleton1[lower_body_indices]
+        lower_body_skeleton2=skeleton2[lower_body_indices]
 
-    plot_skeletons3(lower_body_skeleton1,lower_body_skeleton2,aligned_lower_body_skeleton1,aligned_lower_body_skeleton2,"ZED Aligned Lower body skeletons")
+        lower_body_skeleton1 = center_skeleton(lower_body_skeleton1)
+        lower_body_skeleton2 = center_skeleton(lower_body_skeleton2)
 
-    print("Lower body Disparity:",disparity)
+        lower_body_skeleton1_2d = lower_body_skeleton1.reshape(11, 3)
+        lower_body_skeleton2_2d = lower_body_skeleton2.reshape(11, 3)
+
+        mtx1, mtx2, lower_disparity = procrustes(lower_body_skeleton1_2d, lower_body_skeleton2_2d)
+
+        aligned_lower_body_skeleton1 = mtx1.reshape(11, 3)
+        aligned_lower_body_skeleton2 = mtx2.reshape(11, 3)
+
+        plot_lower_skeletons(lower_body_skeleton1,lower_body_skeleton2,aligned_lower_body_skeleton1,aligned_lower_body_skeleton2,i,"ZED Aligned Lower body skeletons")
+        lower_mpjpe=MPJPE(aligned_lower_body_skeleton1,aligned_lower_body_skeleton2)
+        print("lowerbody procrustes disparity:",str(lower_disparity))
+        print("lowerbody MPJPE:",str(lower_mpjpe))
+        tot_lower_disparityM+=lower_mpjpe
+        tot_lower_disparity+=lower_disparity
+
+    print("Total disparity:",tot_disparityP/len(keypositions))
+    print("Total lower disparity:",tot_lower_disparity/len(keypositions))
+    print("Total Mean MPJPE disparity:",tot_disparityM/len(keypositions))
+    print("Total lower Mean MPJPE disparity:",tot_lower_disparityM/len(keypositions))
 
 if __name__ == '__main__':
     main()
