@@ -25,7 +25,7 @@ def read_skeleton(file_name):
         for body_part in body['body_list']:
             keypoints.append(body_part['keypoint'])
 
-    print(keypoints[0])
+    # print(keypoints[0])
     return np.array(keypoints[0])
 
 def plot_skeleton(skeleton):

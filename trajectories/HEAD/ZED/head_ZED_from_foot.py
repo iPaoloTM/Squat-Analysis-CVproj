@@ -22,6 +22,13 @@ if len(sys.argv) < 2:
 
 file_name = sys.argv[1]
 
+
+if file_name == "sample":
+    color = "red"
+
+if file_name == "groundTruth":
+    color = "blue"
+
 centered_skeletons = []
 barycenter = []
 skeletons = ZED_alignment.read_skeletons(file_name + 'ZED')
@@ -53,7 +60,7 @@ ax = fig_head.add_subplot(111)
 # Add a vertical line
 vertical_line_position = np.mean(list_of_head_coord[:,0])
 ax.axvline(x=vertical_line_position, color='gray', linestyle='-', linewidth=2)
-ax.scatter(list_of_head_coord[:, 0], list_of_head_coord[:, 1], c='red', label='', s=3)
+ax.scatter(list_of_head_coord[:, 0], list_of_head_coord[:, 1], c=color, label='', s=3)
 ax.set_xlabel('X Label')
 ax.set_ylabel('Y Label')
 plt.axis('equal')
@@ -85,8 +92,8 @@ colors = [[1.0, 0.6, 0.6], [1.0, 0.8, 0.6], [0.7, 0.9, 0.7]]
 # Plot the concentric circles
 for i in range(num_circles):
     radius = outer_radius * (num_circles - i) / num_circles
-    color = colors[i % len(colors)]  # Cycle through the colors
-    circle = plt.Circle((barycenter[0], barycenter[2]), radius, color=color, fill=True)
+    color_circle = colors[i % len(colors)]  # Cycle through the colors
+    circle = plt.Circle((barycenter[0], barycenter[2]), radius, color=color_circle, fill=True)
     ax.add_patch(circle)
 
 # Set the aspect ratio to be equal
@@ -95,7 +102,7 @@ ax.set_aspect('equal')
 # Set the limits of the plot
 ax.set_xlim(center_x - outer_radius, center_x + outer_radius)
 ax.set_ylim(center_y - outer_radius, center_y + outer_radius)
-ax.scatter(list_of_head_coord[:, 0], list_of_head_coord[:, 2], c='red', label='')
+ax.scatter(list_of_head_coord[:, 0], list_of_head_coord[:, 2], c=color, label='')
 
 ax.set_xlabel('X Label')
 ax.set_ylabel('Y Label')

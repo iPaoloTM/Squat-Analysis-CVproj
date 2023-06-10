@@ -29,7 +29,7 @@ pose_index_gt = ZED_alignment.main(skeletons_gt)
 index = 0
 list_of_pelvis_coord_gt = []
 for i,skeleton in enumerate(skeletons_gt):
-    if i > pose_index_gt[0] and i < pose_index_gt[1]:
+    if i > pose_index_gt[4] and i < pose_index_gt[5]:
         list_of_pelvis_coord_gt.append(skeleton[index])
 
 list_of_pelvis_coord_gt = np.array(list_of_pelvis_coord_gt)

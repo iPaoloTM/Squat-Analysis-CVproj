@@ -79,7 +79,6 @@ for i in range(len(poses_3d)):
     # Update of skeleton
     vis.update_geometry(skeleton_lines)
     vis.update_geometry(keypoints)
-    # vis.update_geometry(body_trajectory)
 
     vis.update_renderer()
     vis.poll_events()
