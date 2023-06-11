@@ -19,6 +19,24 @@ bones={"pelvis": [0,1], "abs": [1,2], "chest": [2,3], "neck": [3,4],
        "Lhip":[0,16], "Lthigh":[16,17],"Lshin":[17,18],
        "Rfoot":[15,19],"Lfoot":[18,20]}
 
+def center_skeleton_inBarycenter(skeleton):
+
+    r_foot_15 = skeleton[15] # 15, 19
+    l_foot_18 = skeleton[18] # 18 20
+
+    x_baricentro = (r_foot_15[0] + l_foot_18[0] ) / 2
+    y_baricentro = (r_foot_15[1] + l_foot_18[1] ) / 2
+    z_baricentro = (r_foot_15[2]  + l_foot_18[2] ) / 2
+
+    zero_in_foots = [x_baricentro, y_baricentro, z_baricentro]
+    # Compute the displacement vector
+    displacement_vector = -np.array(zero_in_foots)
+
+    for i in range(len(skeleton)):
+        skeleton[i] += displacement_vector
+
+    return skeleton, zero_in_foots
+
 def center_skeleton(skeleton):
 
     pelvis_position = skeleton[0]

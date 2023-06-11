@@ -19,6 +19,38 @@ bones={"pelvis+abs": [0,1], "chest": [1,2], "neck": [3,26],
        "Lhip":[0,18], "Lthigh":[18,19],"Lshin":[19,20],
        "Rfoot":[25,33],"Rankle":[24,33],"Lfoot":[21,32],"Lankle":[20,32]}
 
+def center_skeleton_inBarycenter(skeleton):
+
+    r_foot_15 = skeleton[33] # 15, 19
+    l_foot_18 = skeleton[32] # 18 20
+
+    x_baricentro = (r_foot_15[0] + l_foot_18[0] ) / 2
+    y_baricentro = (r_foot_15[1] + l_foot_18[1] ) / 2
+    z_baricentro = (r_foot_15[2]  + l_foot_18[2] ) / 2
+
+    zero_in_foots = [x_baricentro, y_baricentro, z_baricentro]
+    # Compute the displacement vector
+    displacement_vector = -np.array(zero_in_foots)
+
+    for i in range(len(skeleton)):
+        skeleton[i] += displacement_vector
+
+    return skeleton, zero_in_foots
+
+
+def center_skeleton(skeleton):
+
+    pelvis_position = skeleton[0]
+
+    # Compute the displacement vector
+    displacement_vector = -pelvis_position
+
+    for i in range(len(skeleton)):
+        skeleton[i] += displacement_vector
+
+    return skeleton
+
+
 def compute_angle(x1,y1,x2,y2,x3,y3,x4,y4):
 
     if (((x2 - x1)!=0) & ((x4 - x3)!=0)):
