@@ -36,6 +36,10 @@ MOCAP_mapping=[0,2,3,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,4]
 
 lower_body_indices=[0,11,12,13,14,15,16,17,18]
 
+lower_bones={"Rhip":[0,1], "Rthigh":[1,2],"Rshin":[2,3],
+"Lhip":[0,4], "Lthigh":[4,5],"Lshin":[5,6],
+"Rfoot":[3,7],"Lfoot":[6,8]}
+
 def plot_skeletons(skeleton1, skeleton2, skeleton3, skeleton4, pose, title):
 
     fig = plt.figure(figsize=(12, 6))
@@ -102,8 +106,8 @@ def plot_skeletons(skeleton1, skeleton2, skeleton3, skeleton4, pose, title):
     ax2.yaxis.set_major_locator(plt.MultipleLocator(0.25))
     ax2.zaxis.set_major_locator(plt.MultipleLocator(0.25))
     plt.suptitle(title+str(pose))
-    plt.savefig(f'ZEDvMOCAP/ZEDvMOCAP_{pose}.png')
-    #plt.show()
+    #plt.savefig(f'ZEDvMOCAP/ZEDvMOCAP_{pose}.png')
+    plt.show()
 
 def plot_lower_skeletons(skeleton1, skeleton2, skeleton3, skeleton4, title):
 
@@ -114,20 +118,20 @@ def plot_lower_skeletons(skeleton1, skeleton2, skeleton3, skeleton4, title):
     x1 = [p[0] for p in skeleton1]
     y1 = [p[1] for p in skeleton1]
     z1 = [p[2] for p in skeleton1]
-    ax1.scatter(x1, z1, y1, marker='o', label='Reference skeleton (lower part)', color='#0545e8')
+    ax1.scatter(x1, z1, y1, marker='o', label='Reference skeleton (lower part)', color='orange')
 
-    # for bone, indices in lower_bones.items():
-    #     idx1, idx2 = indices
-    #     ax1.plot([x1[idx1], x1[idx2]], [z1[idx1], z1[idx2]], [y1[idx1], y1[idx2]], color='#0545e8')
+    for bone, indices in lower_bones.items():
+        idx1, idx2 = indices
+        ax1.plot([x1[idx1], x1[idx2]], [z1[idx1], z1[idx2]], [y1[idx1], y1[idx2]], color='orange')
 
     x2 = [p[0] for p in skeleton2]
     y2 = [p[1] for p in skeleton2]
     z2 = [p[2] for p in skeleton2]
-    ax1.scatter(x2, z2, y2, marker='o', label='Sample skeleton (lower part)', color='#e83205')
+    ax1.scatter(x2, z2, y2, marker='o', label='Sample skeleton (lower part)', color='green')
 
-    # for bone, indices in lower_bones.items():
-    #     idx1, idx2 = indices
-    #     ax1.plot([x2[idx1], x2[idx2]], [z2[idx1], z2[idx2]], [y2[idx1], y2[idx2]], color='#e83205')
+    for bone, indices in lower_bones.items():
+        idx1, idx2 = indices
+        ax1.plot([x2[idx1], x2[idx2]], [z2[idx1], z2[idx2]], [y2[idx1], y2[idx2]], color='green')
 
     ax1.set_xlabel('X')
     ax1.set_ylabel('Z')
@@ -145,20 +149,20 @@ def plot_lower_skeletons(skeleton1, skeleton2, skeleton3, skeleton4, title):
     x3 = [p[0] for p in skeleton3]
     y3 = [p[1] for p in skeleton3]
     z3 = [p[2] for p in skeleton3]
-    ax2.scatter(x3, z3, y3, marker='o', label='Aligned reference skeleton (lower part)', color='#0545e8')
+    ax2.scatter(x3, z3, y3, marker='o', label='Aligned reference skeleton (lower part)', color='orange')
 
-    # for bone, indices in lower_bones.items():
-    #     idx1, idx2 = indices
-    #     ax2.plot([x3[idx1], x3[idx2]], [z3[idx1], z3[idx2]], [y3[idx1], y3[idx2]], color='#0545e8')
+    for bone, indices in lower_bones.items():
+        idx1, idx2 = indices
+        ax2.plot([x3[idx1], x3[idx2]], [z3[idx1], z3[idx2]], [y3[idx1], y3[idx2]], color='orange')
 
     x4 = [p[0] for p in skeleton4]
     y4 = [p[1] for p in skeleton4]
     z4 = [p[2] for p in skeleton4]
-    ax2.scatter(x4, z4, y4, marker='o', label='Aligned sample skeleton (lower part)', color='#e83205')
+    ax2.scatter(x4, z4, y4, marker='o', label='Aligned sample skeleton (lower part)', color='green')
 
-    # for bone, indices in lower_bones.items():
-    #     idx1, idx2 = indices
-    #     ax2.plot([x4[idx1], x4[idx2]], [z4[idx1], z4[idx2]], [y4[idx1], y4[idx2]], color='#e83205')
+    for bone, indices in lower_bones.items():
+        idx1, idx2 = indices
+        ax2.plot([x4[idx1], x4[idx2]], [z4[idx1], z4[idx2]], [y4[idx1], y4[idx2]], color='green')
 
     ax2.set_xlabel('X')
     ax2.set_ylabel('Z')
@@ -285,12 +289,10 @@ def plot_pose(pose_state):
 
 def main():
 
-    mpjpe_array=[]
-    lower_mpjpe_array=[]
+    tot_mpjpe=0
+    tot_lower_mpjpe=0
     tot_disparity=0
     tot_lower_disparity=0
-    tot_mpjpe_disparity=0
-    tot_mpjpe_lower_disparity=0
     desired_bone_length=4.5
 
     if len(sys.argv) > 2:
@@ -336,8 +338,8 @@ def main():
             idx1, idx2 = indices
             bone_length2+=compute_bone_length(MOCAP_skeleton[idx1],MOCAP_skeleton[idx2])
 
-        # ZED_skeleton=scale_skeleton(ZED_skeleton, bone_length1,desired_bone_length)
-        # MOCAP_skeleton=scale_skeleton(MOCAP_skeleton, bone_length2,desired_bone_length)
+        ZED_skeleton=scale_skeleton(ZED_skeleton, bone_length1,desired_bone_length)
+        MOCAP_skeleton=scale_skeleton(MOCAP_skeleton, bone_length2,desired_bone_length)
 
         ZED_skeleton = center_skeleton(ZED_skeleton)
         MOCAP_skeleton = center_skeleton(MOCAP_skeleton)
@@ -346,28 +348,15 @@ def main():
         ZED_skeleton_2d = ZED_skeleton.reshape(20, 3)
         MOCAP_skeleton_2d = MOCAP_skeleton.reshape(20, 3)
 
-        # print(ZED_skeleton_2d)
-        # print(MOCAP_skeleton_2d)
-
-        # ZED_skeleton_2d_axis=  np.copy(ZED_skeleton_2d)
-        # MOCAP_skeleton_2d_axis=  np.copy(MOCAP_skeleton_2d)
-        #
-        # ZED_skeleton_2d_axis[:][0]=ZED_skeleton_2d[:][2]
-        # ZED_skeleton_2d_axis[:][2]=ZED_skeleton_2d[:][0]
-
-        # ZED_skeleton_2d = ZED_skeleton_2d[:, [2, 1, 0]]
-        # MOCAP_skeleton_2d = MOCAP_skeleton_2d[:, [0, 2, 1]]
-
         mtx1, mtx2, disparity = procrustes(MOCAP_skeleton_2d, ZED_skeleton_2d)
         aligned_skeleton1 = mtx1.reshape(20, 3)
         aligned_skeleton2 = mtx2.reshape(20, 3)
 
-        plot_skeletons(ZED_skeleton,MOCAP_skeleton, mtx2, mtx1,i, "Aligned Skeletons (ZED v MOCAP)")
+        #plot_skeletons(ZED_skeleton,MOCAP_skeleton, mtx2, mtx1,i, "Aligned Skeletons (ZED v MOCAP)")
 
         mpjpe=MPJPE(aligned_skeleton1,aligned_skeleton2)
         print(mpjpe)
-        mpjpe_array.append(mpjpe)
-
+        tot_mpjpe+=mpjpe
         tot_disparity+=disparity
         '''--------------------------------------------'''
         lower_body_ZED_skeleton=ZED_skeleton[lower_body_indices]
@@ -386,13 +375,16 @@ def main():
 
         lower_mpjpe=MPJPE(aligned_lower_body_skeleton1,aligned_lower_body_skeleton2)
         print(lower_mpjpe)
-        lower_mpjpe_array.append(mpjpe)
+        tot_lower_mpjpe+=lower_mpjpe
 
         #plot_lower_skeletons(lower_body_ZED_skeleton,lower_body_MOCAP_skeleton,aligned_lower_body_skeleton1,aligned_lower_body_skeleton2,"ZEDvMOCAP Aligned Lower body skeletons")
 
         tot_lower_disparity+=lower_disparity
 
     print("Total disparity:",tot_disparity/len(keypositions))
+    print("Total lower disparity:",tot_lower_disparity/len(keypositions))
+    print("Total MPJPE:",tot_mpjpe/len(keypositions))
+    print("Total lower MPJPE:",tot_lower_mpjpe/len(keypositions))
 
     #os.system(' ffmpeg -framerate 20 -i frame_%d.png -c:v libx264 -r 30 -pix_fmt yuv420p ZEDvMOCAP.mp4 -y')
 

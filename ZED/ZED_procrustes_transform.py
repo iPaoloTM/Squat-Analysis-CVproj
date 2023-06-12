@@ -6,6 +6,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import sys
 import json
 import ZED_alignment as ZED
+import math
 
 bones={"pelvis+abs": [0,1], "chest": [1,2], "neck": [3,26],
        "Rclavicle":[3,11],"Rshoulder":[11,12],"Rarm":[12,13], "Rforearm":[13,14],
@@ -217,6 +218,19 @@ def MPJPE(skeleton1, skeleton2):
 
     return res/len(skeleton1)
 
+def compute_angle(x1,y1,x2,y2):
+
+    if (x2 - x1)!=0:
+        slope1 = (y2 - y1) / (x2 - x1)
+    elif (x2-x1)==0:
+        slope1=math.inf
+
+    angle1 = math.degrees(math.atan(slope1))
+
+    angle_diff = abs(90 - angle1)
+
+    return angle_diff
+
 def main():
 
     desired_bone_length=4.5
@@ -251,8 +265,10 @@ def main():
     tot_disparityM=0
     tot_lower_disparity=0
     tot_lower_disparityM=0
+    tot_theta_diff=0
 
     for i,x in enumerate(keypositions):
+        print(i)
         skeleton1 = read_skeleton(file_skeleton1, x[0])
         skeleton2 = read_skeleton(file_skeleton2, x[1])
         bone_length1=0
@@ -286,10 +302,10 @@ def main():
         aligned_skeleton1 = mtx1.reshape(34, 3)
         aligned_skeleton2 = mtx2.reshape(34, 3)
 
-        plot_skeletons(skeleton1,skeleton2,aligned_skeleton1,aligned_skeleton2,i,"ZED Aligned Skeletons")
+        #plot_skeletons(skeleton1,skeleton2,aligned_skeleton1,aligned_skeleton2,i,"ZED Aligned Skeletons")
         mpjpe=MPJPE(aligned_skeleton1,aligned_skeleton2)
-        print("Procrustes disparity:",str(disparity))
-        print("MPJPE disparity:",str(mpjpe))
+        #print("Procrustes disparity:",str(disparity))
+        #print("MPJPE disparity:",str(mpjpe))
         tot_disparityP+=disparity
         tot_disparityM+=mpjpe
 
@@ -307,18 +323,30 @@ def main():
         aligned_lower_body_skeleton1 = mtx1.reshape(11, 3)
         aligned_lower_body_skeleton2 = mtx2.reshape(11, 3)
 
-        plot_lower_skeletons(lower_body_skeleton1,lower_body_skeleton2,aligned_lower_body_skeleton1,aligned_lower_body_skeleton2,i,"ZED Aligned Lower body skeletons")
+        #plot_lower_skeletons(lower_body_skeleton1,lower_body_skeleton2,aligned_lower_body_skeleton1,aligned_lower_body_skeleton2,i,"ZED Aligned Lower body skeletons")
         lower_mpjpe=MPJPE(aligned_lower_body_skeleton1,aligned_lower_body_skeleton2)
-        print("lowerbody procrustes disparity:",str(lower_disparity))
-        print("LowerMPJPE:",str(lower_mpjpe))
+        #print("lowerbody procrustes disparity:",str(lower_disparity))
+        #print("LowerMPJPE:",str(lower_mpjpe))
         tot_lower_disparityM+=lower_mpjpe
         tot_lower_disparity+=lower_disparity
 
+        if i<21:
+            theta1=compute_angle(skeleton1[0][2],skeleton1[0][1], skeleton1[2][2], skeleton1[2][1])
+            theta2=compute_angle(skeleton2[0][2],skeleton2[0][1], skeleton2[2][2], skeleton2[2][1])
 
-    print("Total disparity:",tot_disparityP/len(keypositions))
-    print("Total lower disparity:",tot_lower_disparity/len(keypositions))
-    print("Total Mean MPJPE disparity:",tot_disparityM/len(keypositions))
-    print("Total lower Mean MPJPE disparity:",tot_lower_disparityM/len(keypositions))
+            theta_diff=abs(theta1-theta2)
+            print(theta_diff)
+            tot_theta_diff+=theta_diff
+
+        if squat>20:
+            print("New squat")
+
+
+    #print("Total mean difference of back angle:",tot_theta_diff/21)
+    #print("Total disparity:",tot_disparityP/len(keypositions))
+    #print("Total lower disparity:",tot_lower_disparity/len(keypositions))
+    #print("Total Mean MPJPE disparity:",tot_disparityM/len(keypositions))
+    #print("Total lower Mean MPJPE disparity:",tot_lower_disparityM/len(keypositions))
 
 if __name__ == '__main__':
     main()

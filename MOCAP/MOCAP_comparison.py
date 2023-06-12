@@ -227,6 +227,9 @@ def compute_angle(x1,y1,x2,y2):
 
     angle_diff = abs(90 - angle1)
 
+    if angle_diff > 90:
+        angle_diff=180-angle_diff
+
     return angle_diff
 
 def main():
@@ -265,89 +268,95 @@ def main():
     tot_lower_disparityM=0
     tot_theta_diff=0
 
+    squat=0
+
+    reference=[]
+    sample1=[]
+    sample2=[]
+    sample3=[]
+    sample4=[]
+    sample5=[]
+
+
     for i,x in enumerate(keypositions):
+
+        if squat<20:
+            reference.append(x[0])
+            sample3.append(x[1])
+        elif squat<40 and squat>=20:
+            sample1.append(x[0])
+            sample4.append(x[1])
+        elif squat>=40 and squat<60:
+            sample2.append(x[0])
+            sample5.append(x[1])
+
+        squat+=1
+
+    mpjpe_sample1=0
+    mpjpe_sample2=0
+    mpjpe_sample3=0
+    mpjpe_sample4=0
+    mpjpe_sample5=0
+
+    lost_frame5=0
+
+    thetaR=0
+    theta1=0
+    theta2=0
+    theta3=0
+    theta4=0
+    theta5=0
+    theta1_diff=0
+    theta2_diff=0
+    theta3_diff=0
+    theta4_diff=0
+    theta5_diff=0
+
+    for i in range(len(reference)):
         print(i)
-        skeleton1 = read_skeleton(file_skeleton1, x[0])
-        skeleton2 = read_skeleton(file_skeleton2, x[1])
-        if (len(skeleton1)!= 0 and np.array(skeleton1).shape==(21,3)) and (len(skeleton2)!=0 and np.array(skeleton2).shape==(21,3)):
-            bone_length1=0
-            bone_length2=0
-            for bone, indices in bones.items():
-                idx1, idx2 = indices
-                bone_length1+=compute_bone_length(skeleton1[idx1],skeleton1[idx2])
-                bone_length2+=compute_bone_length(skeleton2[idx1],skeleton2[idx2])
-            skeleton1=scale_skeleton(skeleton1, bone_length1,desired_bone_length)
-            skeleton2=scale_skeleton(skeleton2, bone_length2,desired_bone_length)
-            skeleton1 = center_skeleton(skeleton1)
-            skeleton2 = center_skeleton(skeleton2)
+        skeletonR = read_skeleton(file_skeleton1, reference[i])
+        skeleton1 = read_skeleton(file_skeleton1, sample1[i])
+        skeleton2 = read_skeleton(file_skeleton1, sample2[i])
+        skeleton3 = read_skeleton(file_skeleton2, sample3[i])
+        skeleton4 = read_skeleton(file_skeleton2, sample4[i])
+        skeleton5 = read_skeleton(file_skeleton2, sample5[i])
 
-            # Padding the smaller skeleton with zeros to match the shape of the larger skeleton
-            max_points = max(skeleton1.shape[0], skeleton2.shape[0])
-            if skeleton1.shape[0] < max_points:
-                skeleton1 = np.pad(skeleton1, ((0, max_points - skeleton1.shape[0]), (0, 0)), mode='constant')
-            elif skeleton2.shape[0] < max_points:
-                skeleton2 = np.pad(skeleton2, ((0, max_points - skeleton2.shape[0]), (0, 0)), mode='constant')
+        if (np.array(skeleton5).shape)==(21,3):
+            skeleton5=skeleton5[indices]
+            mpjpe_sample1+=MPJPE(skeletonR,skeleton1)
+            mpjpe_sample2+=MPJPE(skeletonR,skeleton2)
+            mpjpe_sample3+=MPJPE(skeletonR,skeleton3)
+            mpjpe_sample4+=MPJPE(skeletonR,skeleton4)
+            mpjpe_sample5+=MPJPE(skeletonR,skeleton5)
+        else:
+            print("perso")
+            mpjpe_sample5+=0
+            lost_frame5+=1
 
-            # print("Skeleton1: ",skeleton1)
-            # print("Skeleton2: ",skeleton2)
+        thetaR=compute_angle(skeletonR[0][2],skeletonR[0][1], skeletonR[2][2], skeletonR[2][1])
+        theta1=compute_angle(skeleton1[0][2],skeleton1[0][1], skeleton1[2][2], skeleton1[2][1])
+        theta2=compute_angle(skeleton2[0][2],skeleton2[0][1], skeleton2[2][2], skeleton2[2][1])
+        theta3=compute_angle(skeleton3[0][2],skeleton3[0][1], skeleton3[2][2], skeleton3[2][1])
+        theta4=compute_angle(skeleton4[0][2],skeleton4[0][1], skeleton4[2][2], skeleton4[2][1])
+        theta5=compute_angle(skeleton5[0][2],skeleton5[0][1], skeleton5[2][2], skeleton5[2][1])
 
-            #plot_skeletons(skeleton1,skeleton2,"Original Skeletons")
+        theta1_diff+=abs(thetaR -theta1)
+        theta2_diff+=abs(thetaR -theta2)
+        theta3_diff+=abs(thetaR -theta3)
+        theta4_diff+=abs(thetaR -theta4)
+        theta5_diff+=abs(thetaR -theta5)
 
-            # Reshape the arrays for Procrustes transformation
-            skeleton1_2d = skeleton1.reshape(21, 3)
-            skeleton2_2d = skeleton2.reshape(21, 3)
+    print("MPJPE1",str(mpjpe_sample1/len(reference)))
+    print("MPJPE2",str(mpjpe_sample2/len(reference)))
+    print("MPJPE3",str(mpjpe_sample3/len(reference)))
+    print("MPJPE4",str(mpjpe_sample4/len(reference)))
+    print("MPJPE5",str(mpjpe_sample5/(len(reference)-lost_frame5)))
 
-            mtx1, mtx2, disparity = procrustes(skeleton1_2d, skeleton2_2d)
-            aligned_skeleton1 = mtx1.reshape(21, 3)
-            aligned_skeleton2 = mtx2.reshape(21, 3)
-
-            #plot_skeletons(skeleton1,skeleton2,aligned_skeleton1,aligned_skeleton2,i,"MOCAP Aligned Skeletons")
-            mpjpe=MPJPE(aligned_skeleton1,aligned_skeleton2)
-            #print("Procrustes disparity:",str(disparity))
-            #print("MPJPE disparity:",str(mpjpe))
-            tot_disparityP+=disparity
-            tot_disparityM+=mpjpe
-
-            lower_body_skeleton1=skeleton1[lower_body_indices]
-            lower_body_skeleton2=skeleton2[lower_body_indices]
-
-            lower_body_skeleton1 = center_skeleton(lower_body_skeleton1)
-            lower_body_skeleton2 = center_skeleton(lower_body_skeleton2)
-
-            lower_body_skeleton1_2d = lower_body_skeleton1.reshape(9, 3)
-            lower_body_skeleton2_2d = lower_body_skeleton2.reshape(9, 3)
-
-            mtx1, mtx2, lower_disparity = procrustes(lower_body_skeleton1_2d, lower_body_skeleton2_2d)
-
-            aligned_lower_body_skeleton1 = mtx1.reshape(9, 3)
-            aligned_lower_body_skeleton2 = mtx2.reshape(9, 3)
-
-            #plot_lower_skeletons(lower_body_skeleton1,lower_body_skeleton2,aligned_lower_body_skeleton1,aligned_lower_body_skeleton2,i,"MOCAP Aligned Lower body skeletons")
-            lower_mpjpe=MPJPE(aligned_lower_body_skeleton1,aligned_lower_body_skeleton2)
-
-            #print("lowerbody procrustes disparity:",str(lower_disparity))
-            #print("LowerMPJPE:",str(lower_mpjpe))
-            tot_lower_disparityM+=lower_mpjpe
-            tot_lower_disparity+=lower_disparity
-
-            if i<20:
-                theta1=compute_angle(skeleton1[0][2],skeleton1[0][1], skeleton1[2][2], skeleton1[2][1])
-                theta2=compute_angle(skeleton2[0][2],skeleton2[0][1], skeleton2[2][2], skeleton2[2][1])
-
-                theta_diff=abs(theta1-theta2)
-                tot_theta_diff+=theta_diff
-                print(theta_diff)
-
-            if squat>20:
-                print("New squat")
-
-
-
-    # print("Total mean difference of back angle:",tot_theta_diff/21)
-    # print("Total disparity:",tot_disparityP/len(keypositions))
-    # print("Total lower disparity:",tot_lower_disparity/len(keypositions))
-    # print("Total Mean MPJPE disparity:",tot_disparityM/len(keypositions))
-    # print("Total lower Mean MPJPE disparity:",tot_lower_disparityM/len(keypositions))
+    print("THETA1 DIFF",str(theta1_diff/len(reference)))
+    print("THETA2 DIFF",str(theta2_diff/len(reference)))
+    print("THETA3 DIFF",str(theta3_diff/len(reference)))
+    print("THETA4 DIFF",str(theta4_diff/len(reference)))
+    print("THETA5 DIFF",str(theta5_diff/len(reference)))
 
 if __name__ == '__main__':
     main()

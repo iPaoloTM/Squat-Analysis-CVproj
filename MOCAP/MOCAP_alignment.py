@@ -295,17 +295,53 @@ def compute_squat_positions(local_minima, pose_state, skeletons, title):
             begin=i
         if pose_index[i]=='Squat':
             dist=abs(skeletons[begin][0][1]-skeletons[i][0][1])
-            pos1=skeletons[begin][0][1]-((dist)/3)
-            pos2=skeletons[begin][0][1]-(((dist)*2)/3)
+            pos1=skeletons[begin][0][1]-((dist)/10)
+            pos2=skeletons[begin][0][1]-(((dist)*2)/10)
+            pos3=skeletons[begin][0][1]-(((dist)*3)/10)
+            pos4=skeletons[begin][0][1]-(((dist)*4)/10)
+            pos5=skeletons[begin][0][1]-(((dist)*5)/10)
+            pos6=skeletons[begin][0][1]-(((dist)*6)/10)
+            pos7=skeletons[begin][0][1]-(((dist)*7)/10)
+            pos8=skeletons[begin][0][1]-(((dist)*8)/10)
+            pos9=skeletons[begin][0][1]-(((dist)*9)/10)
             x=i-1
             while x>begin:
                 if abs(skeletons[x][0][1]-pos1)<confidence_down:
+                    #print("DOWN 1 "+str(x))
                     pose_index[x]='intermediate_down1'
                     pos1=100 #stop searchiing for another match
                 elif abs(skeletons[x][0][1]-pos2)<confidence_down:
+                    #print("DOWN 2 "+str(x))
                     pose_index[x]='intermediate_down2'
                     pos2=100
-
+                elif abs(skeletons[x][0][1]-pos3)<confidence_down:
+                    #print("DOWN 2 "+str(x))
+                    pose_index[x]='intermediate_down3'
+                    pos3=100
+                elif abs(skeletons[x][0][1]-pos4)<confidence_down:
+                    #print("DOWN 2 "+str(x))
+                    pose_index[x]='intermediate_down4'
+                    pos4=100
+                elif abs(skeletons[x][0][1]-pos5)<confidence_down:
+                    #print("DOWN 2 "+str(x))
+                    pose_index[x]='intermediate_down5'
+                    pos5=100
+                elif abs(skeletons[x][0][1]-pos6)<confidence_down:
+                    #print("DOWN 2 "+str(x))
+                    pose_index[x]='intermediate_down6'
+                    pos6=100
+                elif abs(skeletons[x][0][1]-pos7)<confidence_down:
+                    #print("DOWN 2 "+str(x))
+                    pose_index[x]='intermediate_down7'
+                    pos7=100
+                elif abs(skeletons[x][0][1]-pos8)<confidence_down:
+                    #print("DOWN 2 "+str(x))
+                    pose_index[x]='intermediate_down8'
+                    pos8=100
+                elif abs(skeletons[x][0][1]-pos9)<confidence_down:
+                    #print("DOWN 2 "+str(x))
+                    pose_index[x]='intermediate_down9'
+                    pos9=100
                 x-=1
             j+=1 #next squat
         i+=1 #next frame
@@ -324,16 +360,53 @@ def compute_squat_positions(local_minima, pose_state, skeletons, title):
             finish=i
         if pose_index[i]=='Squat':
             dist=abs(skeletons[finish][0][1]-skeletons[i][0][1])
-            pos1=skeletons[i][0][1]+((dist)/3)
-            pos2=skeletons[i][0][1]+(((dist)*2)/3)
+            pos1=skeletons[i][0][1]+((dist)/10)
+            pos2=skeletons[i][0][1]+(((dist)*2)/10)
+            pos3=skeletons[i][0][1]+(((dist)*3)/10)
+            pos4=skeletons[i][0][1]+(((dist)*4)/10)
+            pos5=skeletons[i][0][1]+(((dist)*5)/10)
+            pos6=skeletons[i][0][1]+(((dist)*6)/10)
+            pos7=skeletons[i][0][1]+(((dist)*7)/10)
+            pos8=skeletons[i][0][1]+(((dist)*8)/10)
+            pos9=skeletons[i][0][1]+(((dist)*9)/10)
             x=i+1
             while x<finish:
                 if abs(skeletons[x][0][1]-pos1)<confidence_up:
+                    #print("DOWN 1 "+str(x))
                     pose_index[x]='intermediate_up1'
                     pos1=100 #stop searchiing for another match
                 elif abs(skeletons[x][0][1]-pos2)<confidence_up:
+                    #print("DOWN 2 "+str(x))
                     pose_index[x]='intermediate_up2'
                     pos2=100
+                elif abs(skeletons[x][0][1]-pos3)<confidence_up:
+                    #print("DOWN 2 "+str(x))
+                    pose_index[x]='intermediate_up3'
+                    pos3=100
+                elif abs(skeletons[x][0][1]-pos4)<confidence_up:
+                    #print("DOWN 2 "+str(x))
+                    pose_index[x]='intermediate_up4'
+                    pos4=100
+                elif abs(skeletons[x][0][1]-pos5)<confidence_up:
+                    #print("DOWN 2 "+str(x))
+                    pose_index[x]='intermediate_up5'
+                    pos5=100
+                elif abs(skeletons[x][0][1]-pos6)<confidence_up:
+                    #print("DOWN 2 "+str(x))
+                    pose_index[x]='intermediate_up6'
+                    pos6=100
+                elif abs(skeletons[x][0][1]-pos7)<confidence_up:
+                    #print("DOWN 2 "+str(x))
+                    pose_index[x]='intermediate_up7'
+                    pos7=100
+                elif abs(skeletons[x][0][1]-pos8)<confidence_up:
+                    #print("DOWN 2 "+str(x))
+                    pose_index[x]='intermediate_up8'
+                    pos8=100
+                elif abs(skeletons[x][0][1]-pos9)<confidence_up:
+                    #print("DOWN 2 "+str(x))
+                    pose_index[x]='intermediate_up9'
+                    pos9=100
                 x+=1
             j-=1
         i-=1
@@ -344,7 +417,7 @@ def compute_squat_positions(local_minima, pose_state, skeletons, title):
     for i in range(len(pose_index)):
         if pose_index[i]=='intermediate_down1':
             flag=True
-        elif pose_index[i]=='intermediate_up2':
+        elif pose_index[i]=='intermediate_up9':
             flag=False
         if flag==True:
             pose_state[i]='RELEVANCE'

@@ -420,10 +420,10 @@ def compute_squat_positions(local_minima, pose_state, skeletons, title):
     for i in range(len(pose_index)):
         if pose_index[i]=='intermediate_down1':
             flag=True
-        elif pose_index[i]=='intermediate_up2':
+        elif pose_index[i]=='intermediate_up9':
             flag=False
         if flag==True:
-                pose_state[i]='RELEVANCE'
+            pose_state[i]='RELEVANCE'
 
     pose_index2=[]
     for i,x in enumerate(pose_index):

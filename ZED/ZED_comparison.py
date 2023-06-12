@@ -1,25 +1,27 @@
 import numpy as np
 from scipy.spatial import procrustes
+from scipy.linalg import orthogonal_procrustes
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import sys
 import json
-import MOCAP_alignment as MOCAP
+import ZED_alignment as ZED
 import math
 
-bones={"pelvis": [0,1], "abs": [1,2], "chest": [2,3], "neck": [3,4],
-       "Rclavicle":[3,5],"Rshoulder":[5,6],"Rarm":[6,7], "Rforearm":[7,8],
-       "Lclavicle":[3,9],"Lshoulder":[9,10], "Larm":[10,11], "Lforearm":[11,12],
-       "Rhip":[0,13], "Rthigh":[13,14],"Rshin":[14,15],
-       "Lhip":[0,16], "Lthigh":[16,17],"Lshin":[17,18],
-       "Rfoot":[15,19],"Lfoot":[18,20]}
+bones={"pelvis+abs": [0,1], "chest": [1,2], "neck": [3,26],
+       "Rclavicle":[3,11],"Rshoulder":[11,12],"Rarm":[12,13], "Rforearm":[13,14],
+       "Lclavicle":[3,4],"Lshoulder":[4,5], "Larm":[5,6], "Lforearm":[6,7],
+       "chest1":[2,11],"chest2":[2,3],"chest3":[2,4],
+       "Rhip":[0,22], "Rthigh":[22,23],"Rshin":[23,24],
+       "Lhip":[0,18], "Lthigh":[18,19],"Lshin":[19,20],
+       "Rfoot":[25,33],"Rankle":[24,33],"Lfoot":[21,32],"Lankle":[20,32]}
 
-lower_bones={"Rhip":[0,1],"Rthigh":[1,3],"Rshin":[3,5], "Rfoot":[5,7],
-             "Lhip":[0,2], "Lthigh":[2,4], "Lshin":[4,6], "Lfoot":[6,8]}
+lower_bones={"Rhip":[0,1],"Rthigh":[1,2],"Rshin":[2,3],"Rankle":[3,4],"Rfoot1":[4,9],"Rfoot": [3,9],
+       "Lhip":[0,5],"Lthigh":[5,6],"Lshin":[6,7],"Lankle":[7,8],"Lfoot1":[8,10],"Lfoot":[7,10]   }
 
-lower_body_indices = [0, 13, 16, 14, 17, 15, 18, 19, 20]
+lower_body_indices = [0, 18, 19, 20, 21, 22, 23, 24, 25, 32, 33]
 
-def plot_skeletons(skeleton1, skeleton2, skeleton3, skeleton4, pose, title):
+def plot_skeletons(skeleton1, skeleton2, skeleton3, skeleton4, pose,title):
 
     fig = plt.figure(figsize=(12, 6))
 
@@ -44,15 +46,16 @@ def plot_skeletons(skeleton1, skeleton2, skeleton3, skeleton4, pose, title):
         ax1.plot([x2[idx1], x2[idx2]], [z2[idx1], z2[idx2]], [y2[idx1], y2[idx2]], color='#e83205')
 
     ax1.set_xlabel('X')
-    ax1.set_ylabel('Y')
-    ax1.set_zlabel('Z')
+    ax1.set_ylabel('Z')
+    ax1.set_zlabel('Y')
     ax1.set_xlim([-1,1])
     ax1.set_ylim([-1,1])
     ax1.set_zlim([-1,1])
     ax1.xaxis.set_major_locator(plt.MultipleLocator(0.5))
     ax1.yaxis.set_major_locator(plt.MultipleLocator(0.5))
     ax1.zaxis.set_major_locator(plt.MultipleLocator(0.5))
-    ax1.view_init(azim=57, elev=6)
+    ax1.view_init(azim=151, elev=6)
+    #ax1.legend()
 
     # Plotting the second pair of skeletons
     ax2 = fig.add_subplot(122, projection='3d')
@@ -75,21 +78,20 @@ def plot_skeletons(skeleton1, skeleton2, skeleton3, skeleton4, pose, title):
         ax2.plot([x4[idx1], x4[idx2]], [z4[idx1], z4[idx2]], [y4[idx1], y4[idx2]], color='#e83205')
 
     ax2.set_xlabel('X')
-    ax2.set_ylabel('Y')
-    ax2.set_zlabel('Z')
-    ax2.set_xlim([-0.3, 0.3])
-    ax2.set_ylim([-0.3, 0.3])
-    ax2.set_zlim([-0.3, 0.3])
+    ax2.set_ylabel('Z')
+    ax2.set_zlabel('Y')
     ax2.xaxis.set_major_locator(plt.MultipleLocator(0.25))
     ax2.yaxis.set_major_locator(plt.MultipleLocator(0.25))
     ax2.zaxis.set_major_locator(plt.MultipleLocator(0.25))
-    ax2.view_init(azim=57, elev=5)
-    #plt.savefig(f'MOCAP_reference_sample/MOCAP_reference_sample_{pose}.png')
+    ax2.set_xlim([-0.3, 0.3])
+    ax2.set_ylim([-0.3, 0.3])
+    ax2.set_zlim([-0.3, 0.3])
+    ax2.view_init(azim=140, elev=5)
+    #plt.savefig(f'ZED_reference_sample/ZED_reference_sample_{pose}.png')
     plt.suptitle(title)
     plt.show()
 
 def plot_lower_skeletons(skeleton1, skeleton2, skeleton3, skeleton4, pose, title):
-
 
     fig = plt.figure(figsize=(12, 6))
 
@@ -114,15 +116,15 @@ def plot_lower_skeletons(skeleton1, skeleton2, skeleton3, skeleton4, pose, title
         ax1.plot([x2[idx1], x2[idx2]], [z2[idx1], z2[idx2]], [y2[idx1], y2[idx2]], color='#e83205')
 
     ax1.set_xlabel('X')
-    ax1.set_ylabel('Y')
-    ax1.set_zlabel('Z')
+    ax1.set_ylabel('Z')
+    ax1.set_zlabel('Y')
     ax1.set_xlim([-1,1])
     ax1.set_ylim([-1,1])
     ax1.set_zlim([-1,1])
     ax1.xaxis.set_major_locator(plt.MultipleLocator(0.5))
     ax1.yaxis.set_major_locator(plt.MultipleLocator(0.5))
     ax1.zaxis.set_major_locator(plt.MultipleLocator(0.5))
-    ax1.view_init(azim=57, elev=6)
+    ax1.view_init(azim=151, elev=6)
 
     # Plotting the second pair of skeletons
     ax2 = fig.add_subplot(122, projection='3d')
@@ -145,33 +147,33 @@ def plot_lower_skeletons(skeleton1, skeleton2, skeleton3, skeleton4, pose, title
         ax2.plot([x4[idx1], x4[idx2]], [z4[idx1], z4[idx2]], [y4[idx1], y4[idx2]], color='#e83205')
 
     ax2.set_xlabel('X')
-    ax2.set_ylabel('Y')
-    ax2.set_zlabel('Z')
-    ax2.set_xlim([-0.8,0.8])
-    ax2.set_ylim([-0.8,0.8])
-    ax2.set_zlim([-0.5,1.2])
+    ax2.set_ylabel('Z')
+    ax2.set_zlabel('Y')
     ax2.xaxis.set_major_locator(plt.MultipleLocator(0.5))
     ax2.yaxis.set_major_locator(plt.MultipleLocator(0.5))
     ax2.zaxis.set_major_locator(plt.MultipleLocator(0.5))
-    ax2.view_init(azim=37, elev=6)
+    ax2.set_xlim([-0.8,0.8])
+    ax2.set_ylim([-0.8,0.8])
+    ax2.set_zlim([-0.3,1.2])
+    ax2.view_init(azim=144, elev=6)
 
     plt.suptitle(title)
-    #plt.savefig(f'MOCAP_lower_reference_sample/MOCAP_lower_reference_sample_{pose}.png')
+    #plt.savefig(f'ZED_lower_reference_sample/ZED_lower_reference_sample_{pose}.png')
     plt.show()
 
 def read_skeleton(file_name, frame):
+
+    skeleton=[]
+    # Load the second JSON file
     with open('../body_data/'+file_name+'.json', 'r') as f:
         data = json.load(f)
 
-    frame_data = data[int(frame)]
-    body_data = frame_data
+    for i,body in enumerate(data.values()):
+        if i==int(frame):
+            for body_part in body['body_list']:
+                skeleton.append(body_part['keypoint'])
 
-    skeleton=[]
-    for joint in body_data['keypoints']:
-        #print(joint['Position'])
-        skeleton.append(joint['Position'])
-
-    return np.array(skeleton)
+    return np.array(skeleton[0])
 
 def center_skeleton(skeleton):
     """
@@ -227,6 +229,9 @@ def compute_angle(x1,y1,x2,y2):
 
     angle_diff = abs(90 - angle1)
 
+    if angle_diff > 90:
+        angle_diff=180-angle_diff
+
     return angle_diff
 
 def main():
@@ -243,8 +248,8 @@ def main():
         print("Not enough arguments")
         exit(1)
 
-    keypositions1=MOCAP.main(file_skeleton1)
-    keypositions2=MOCAP.main(file_skeleton2)
+    keypositions1=ZED.main(file_skeleton1)
+    keypositions2=ZED.main(file_skeleton2)
 
     keypositions=[]
 
@@ -265,89 +270,86 @@ def main():
     tot_lower_disparityM=0
     tot_theta_diff=0
 
+    squat=0
+
+    reference=[]
+    sample1=[]
+    sample2=[]
+    sample3=[]
+    sample4=[]
+    sample5=[]
+
     for i,x in enumerate(keypositions):
+
+        if squat<20:
+            reference.append(x[0])
+            sample3.append(x[1])
+        elif squat<40 and squat>=20:
+            sample1.append(x[0])
+            sample4.append(x[1])
+        elif squat>=40 and squat<60:
+            sample2.append(x[0])
+            sample5.append(x[1])
+
+        squat+=1
+
+    mpjpe_sample1=0
+    mpjpe_sample2=0
+    mpjpe_sample3=0
+    mpjpe_sample4=0
+    mpjpe_sample5=0
+
+    thetaR=0
+    theta1=0
+    theta2=0
+    theta3=0
+    theta4=0
+    theta5=0
+    theta1_diff=0
+    theta2_diff=0
+    theta3_diff=0
+    theta4_diff=0
+    theta5_diff=0
+
+    for i in range(len(reference)):
         print(i)
-        skeleton1 = read_skeleton(file_skeleton1, x[0])
-        skeleton2 = read_skeleton(file_skeleton2, x[1])
-        if (len(skeleton1)!= 0 and np.array(skeleton1).shape==(21,3)) and (len(skeleton2)!=0 and np.array(skeleton2).shape==(21,3)):
-            bone_length1=0
-            bone_length2=0
-            for bone, indices in bones.items():
-                idx1, idx2 = indices
-                bone_length1+=compute_bone_length(skeleton1[idx1],skeleton1[idx2])
-                bone_length2+=compute_bone_length(skeleton2[idx1],skeleton2[idx2])
-            skeleton1=scale_skeleton(skeleton1, bone_length1,desired_bone_length)
-            skeleton2=scale_skeleton(skeleton2, bone_length2,desired_bone_length)
-            skeleton1 = center_skeleton(skeleton1)
-            skeleton2 = center_skeleton(skeleton2)
+        skeletonR = read_skeleton(file_skeleton1, reference[i])
+        skeleton1 = read_skeleton(file_skeleton1, sample1[i])
+        skeleton2 = read_skeleton(file_skeleton1, sample2[i])
+        skeleton3 = read_skeleton(file_skeleton2, sample3[i])
+        skeleton4 = read_skeleton(file_skeleton2, sample4[i])
+        skeleton5 = read_skeleton(file_skeleton2, sample5[i])
 
-            # Padding the smaller skeleton with zeros to match the shape of the larger skeleton
-            max_points = max(skeleton1.shape[0], skeleton2.shape[0])
-            if skeleton1.shape[0] < max_points:
-                skeleton1 = np.pad(skeleton1, ((0, max_points - skeleton1.shape[0]), (0, 0)), mode='constant')
-            elif skeleton2.shape[0] < max_points:
-                skeleton2 = np.pad(skeleton2, ((0, max_points - skeleton2.shape[0]), (0, 0)), mode='constant')
+        mpjpe_sample1+=MPJPE(lower_body_skeletonR,lower_body_skeleton1)
+        mpjpe_sample2+=MPJPE(lower_body_skeletonR,lower_body_skeleton2)
+        mpjpe_sample3+=MPJPE(lower_body_skeletonR,lower_body_skeleton3)
+        mpjpe_sample4+=MPJPE(lower_body_skeletonR,lower_body_skeleton4)
+        mpjpe_sample5+=MPJPE(lower_body_skeletonR,lower_body_skeleton5)
 
-            # print("Skeleton1: ",skeleton1)
-            # print("Skeleton2: ",skeleton2)
+        thetaR=compute_angle(skeletonR[0][2],skeletonR[0][1], skeletonR[2][2], skeletonR[2][1])
+        theta1=compute_angle(skeleton1[0][2],skeleton1[0][1], skeleton1[2][2], skeleton1[2][1])
+        theta2=compute_angle(skeleton2[0][2],skeleton2[0][1], skeleton2[2][2], skeleton2[2][1])
+        theta3=compute_angle(skeleton3[0][2],skeleton3[0][1], skeleton3[2][2], skeleton3[2][1])
+        theta4=compute_angle(skeleton4[0][2],skeleton4[0][1], skeleton4[2][2], skeleton4[2][1])
+        theta5=compute_angle(skeleton5[0][2],skeleton5[0][1], skeleton5[2][2], skeleton5[2][1])
 
-            #plot_skeletons(skeleton1,skeleton2,"Original Skeletons")
+        theta1_diff+=abs(thetaR -theta1)
+        theta2_diff+=abs(thetaR -theta2)
+        theta3_diff+=abs(thetaR -theta3)
+        theta4_diff+=abs(thetaR -theta4)
+        theta5_diff+=abs(thetaR -theta5)
 
-            # Reshape the arrays for Procrustes transformation
-            skeleton1_2d = skeleton1.reshape(21, 3)
-            skeleton2_2d = skeleton2.reshape(21, 3)
+    print("MPJPE1",str(mpjpe_sample1/len(reference)))
+    print("MPJPE2",str(mpjpe_sample2/len(reference)))
+    print("MPJPE3",str(mpjpe_sample3/len(reference)))
+    print("MPJPE4",str(mpjpe_sample4/len(reference)))
+    print("MPJPE5",str(mpjpe_sample5/len(reference)))
 
-            mtx1, mtx2, disparity = procrustes(skeleton1_2d, skeleton2_2d)
-            aligned_skeleton1 = mtx1.reshape(21, 3)
-            aligned_skeleton2 = mtx2.reshape(21, 3)
-
-            #plot_skeletons(skeleton1,skeleton2,aligned_skeleton1,aligned_skeleton2,i,"MOCAP Aligned Skeletons")
-            mpjpe=MPJPE(aligned_skeleton1,aligned_skeleton2)
-            #print("Procrustes disparity:",str(disparity))
-            #print("MPJPE disparity:",str(mpjpe))
-            tot_disparityP+=disparity
-            tot_disparityM+=mpjpe
-
-            lower_body_skeleton1=skeleton1[lower_body_indices]
-            lower_body_skeleton2=skeleton2[lower_body_indices]
-
-            lower_body_skeleton1 = center_skeleton(lower_body_skeleton1)
-            lower_body_skeleton2 = center_skeleton(lower_body_skeleton2)
-
-            lower_body_skeleton1_2d = lower_body_skeleton1.reshape(9, 3)
-            lower_body_skeleton2_2d = lower_body_skeleton2.reshape(9, 3)
-
-            mtx1, mtx2, lower_disparity = procrustes(lower_body_skeleton1_2d, lower_body_skeleton2_2d)
-
-            aligned_lower_body_skeleton1 = mtx1.reshape(9, 3)
-            aligned_lower_body_skeleton2 = mtx2.reshape(9, 3)
-
-            #plot_lower_skeletons(lower_body_skeleton1,lower_body_skeleton2,aligned_lower_body_skeleton1,aligned_lower_body_skeleton2,i,"MOCAP Aligned Lower body skeletons")
-            lower_mpjpe=MPJPE(aligned_lower_body_skeleton1,aligned_lower_body_skeleton2)
-
-            #print("lowerbody procrustes disparity:",str(lower_disparity))
-            #print("LowerMPJPE:",str(lower_mpjpe))
-            tot_lower_disparityM+=lower_mpjpe
-            tot_lower_disparity+=lower_disparity
-
-            if i<20:
-                theta1=compute_angle(skeleton1[0][2],skeleton1[0][1], skeleton1[2][2], skeleton1[2][1])
-                theta2=compute_angle(skeleton2[0][2],skeleton2[0][1], skeleton2[2][2], skeleton2[2][1])
-
-                theta_diff=abs(theta1-theta2)
-                tot_theta_diff+=theta_diff
-                print(theta_diff)
-
-            if squat>20:
-                print("New squat")
-
-
-
-    # print("Total mean difference of back angle:",tot_theta_diff/21)
-    # print("Total disparity:",tot_disparityP/len(keypositions))
-    # print("Total lower disparity:",tot_lower_disparity/len(keypositions))
-    # print("Total Mean MPJPE disparity:",tot_disparityM/len(keypositions))
-    # print("Total lower Mean MPJPE disparity:",tot_lower_disparityM/len(keypositions))
+    print("THETA1 DIFF",str(theta1_diff/len(reference)))
+    print("THETA2 DIFF",str(theta2_diff/len(reference)))
+    print("THETA3 DIFF",str(theta3_diff/len(reference)))
+    print("THETA4 DIFF",str(theta4_diff/len(reference)))
+    print("THETA5 DIFF",str(theta5_diff/len(reference)))
 
 if __name__ == '__main__':
     main()

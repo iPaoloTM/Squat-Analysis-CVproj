@@ -90,16 +90,6 @@ def scale_skeleton(skeleton, total_bone_length, desired_bone_length):
 
 def compute_angle(x1,y1,x2,y2):
 
-    # x1=0.09
-    # y1=0.06
-    # x2=0.5
-    # y2=0.5
-
-    print(x1)
-    print(y1)
-    print(x2)
-    print(y2)
-
     if (x2 - x1)!=0:
         slope1 = (y2 - y1) / (x2 - x1)
     elif (x2-x1)==0:
