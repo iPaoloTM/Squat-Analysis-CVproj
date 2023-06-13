@@ -73,6 +73,10 @@ skeleton_joints.colors = o3d.utility.Vector3dVector(colors)
 
 vis = o3d.visualization.Visualizer()
 
+# Customize visualization settings
+opt = vis.get_render_option()
+opt.point_size = 10
+
 WINDOW_WIDTH=1920
 WINDOW_HEIGHT=1080
 
