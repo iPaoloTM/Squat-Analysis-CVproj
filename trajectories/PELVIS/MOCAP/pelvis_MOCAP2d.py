@@ -89,18 +89,15 @@ centered_coordinates_2 = coordinates_array_2 - centroid_2
 ##################################################### PLOT
 fig_pelvis = plt.figure()
 ax = fig_pelvis.add_subplot(111)
-# ax.set_title("pelvis FROM MOCAP2d")
 
-
+# y_reference = centered_coordinates_gt[0, 1]
+centered_coordinates_gt -= centered_coordinates_gt[2]
 centered_coordinates_gt -= centered_coordinates_gt[0]
-# Define the colormap without white color
+# centered_coordinates_gt[:, 1] -= y_reference
+
 colors = [ 'darkred', 'red']
-# Calculate the minimum and maximum values
 y_min_gt = np.min(centered_coordinates_gt)
 y_max_gt = np.max(centered_coordinates_gt)
-# Define the colors for the two sections
-color_start = 'red'
-color_end = 'darkred'
 
 # Create the colormap with two sections
 bounds = [y_min_gt, y_max_gt]
@@ -108,10 +105,14 @@ cmap = mcolors.LinearSegmentedColormap.from_list('my_cmap', colors)
 y_values = centered_coordinates_gt[:, 1] # y values for coloring
 y_values_norm = (y_values - np.min(y_values)) / (np.max(y_values) - np.min(y_values))
 norm = mcolors.Normalize(vmin=y_min_gt, vmax=y_max_gt)
-ax.scatter(centered_coordinates_gt[:, 0], centered_coordinates_gt[:, 1],  c=centered_coordinates_gt[:, 1], cmap=cmap, norm=norm, label='Data', s=3)
+ax.scatter(centered_coordinates_gt[:, 2], centered_coordinates_gt[:, 1],  c=centered_coordinates_gt[:, 1], cmap=cmap, norm=norm, label='Data', s=3)
+
 
 
 centered_coordinates_2 -= centered_coordinates_2[0]
+centered_coordinates_2 -= centered_coordinates_2[2]
+# centered_coordinates_2[:, 1] -= y_reference
+
 colors_2 = [ 'darkblue', 'cyan']
 y_min = np.min(centered_coordinates_2)
 y_max = np.max(centered_coordinates_2)
@@ -120,28 +121,36 @@ cmap = mcolors.LinearSegmentedColormap.from_list('my_cmap', colors_2)
 y_values = centered_coordinates_2[:, 1] # y values for coloring
 y_values_norm = (y_values - np.min(y_values)) / (np.max(y_values) - np.min(y_values))
 norm = mcolors.Normalize(vmin=y_min, vmax=y_max)
-plt.scatter(centered_coordinates_2[:, 0], centered_coordinates_2[:, 1], c=centered_coordinates_2[:, 1], cmap=cmap, norm=norm,  label='GROUDTRUTH', s=3)
+plt.scatter(centered_coordinates_2[:, 2], centered_coordinates_2[:, 1], c=centered_coordinates_2[:, 1], cmap=cmap, norm=norm,  label='GROUDTRUTH', s=3)
 cbar = plt.colorbar()
-
-
 
 ax.set_xlabel('X')
 ax.set_ylabel('Y')
 plt.axis('equal')
-# plt.xlim(-0.5, 0.5)
-# plt.ylim(-0.5, 0.5)
-plt.show()
+# plt.show()
+plt.savefig('pelvis_MOCAP_groundTruthVSsample.png')
 
+
+##############################
 
 fig_pelvis_traj = plt.figure()
 ax = fig_pelvis_traj.add_subplot(111)
-interesting_pelvis_coor -= interesting_pelvis_coor[0]
-interesting_pelvis_coor_sample -= interesting_pelvis_coor_sample[0]
+# y_reference = interesting_pelvis_coor[0, 1]
+# print(y_reference)
 
-ax.scatter(interesting_pelvis_coor[:, 0], interesting_pelvis_coor[:, 1],c='green', label='GROUDTRUTH', s=3)
-ax.scatter(interesting_pelvis_coor_sample[:, 0], interesting_pelvis_coor_sample[:, 1],c='orange', label='GROUDTRUTH', s=3)
+interesting_pelvis_coor -= interesting_pelvis_coor[0]
+# interesting_pelvis_coor[:, 1] -= y_reference
+print(interesting_pelvis_coor)
+
+interesting_pelvis_coor_sample -= interesting_pelvis_coor_sample[0]
+# interesting_pelvis_coor_sample[:, 1] -= y_reference
+print(interesting_pelvis_coor_sample)
+
+ax.scatter(interesting_pelvis_coor[:, 2], interesting_pelvis_coor[:, 1],c='blue', label='GROUDTRUTH', s=3)
+ax.scatter(interesting_pelvis_coor_sample[:, 2], interesting_pelvis_coor_sample[:, 1],c='red', label='GROUDTRUTH', s=3)
 plt.axis('equal')
-plt.show()
+# plt.show()
+plt.savefig('pelvis_MOCAP_groundTruthVSsample_sampledTraj.png')
 
 ############### computing ADE average Distance Error between the points
 
@@ -154,4 +163,3 @@ print("ADE:", ade)
 
 fde = compute_fde(interesting_pelvis_coor, interesting_pelvis_coor_sample)
 print("FDE:", fde)
-plt.savefig('pelvis_MOCAP_groundTruthVSsample.png')

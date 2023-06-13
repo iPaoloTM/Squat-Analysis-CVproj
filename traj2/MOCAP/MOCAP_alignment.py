@@ -105,7 +105,7 @@ def compute_pose(Rarm_angle, Larm_angle, Rleg_angle, Lleg_angle, Rshoulder_angle
         return "-"
 
 def read_skeletons(file_name):
-    with open('../../../body_data/'+file_name+'.json', 'r') as f:
+    with open('../../body_data/'+file_name+'.json', 'r') as f:
         data = json.load(f)
 
     keypoints = [[]]
@@ -123,7 +123,7 @@ def read_skeletons(file_name):
     return keypoints
 
 def read_joint(file_name, label, start, end):
-    with open('../body_data/'+file_name+'.json', 'r') as f:
+    with open('../../../body_data/'+file_name+'.json', 'r') as f:
         data = json.load(f)
 
     joint_coor = []

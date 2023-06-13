@@ -50,8 +50,8 @@ fig_head = plt.figure()
 ax = fig_head.add_subplot(111)
 # ax.set_title("head FROM MOCAP")
 
-list_of_head_coord -= list_of_head_coord[0]
-list_of_head_coord += barycenter[0]
+list_of_head_coord -= list_of_head_coord[2]
+list_of_head_coord += barycenter[2]
 
 points = np.array(list_of_head_coord)
 
@@ -65,46 +65,47 @@ max_y_index = np.argmax(points[:, 1])
 point_with_max_y = points[max_y_index]
 print("Point with the maximum y-coordinate:", point_with_max_y)
 
-ax.plot([barycenter[0], barycenter[0]], [point_with_min_y[1], point_with_max_y[1]], c='gray')
-ax.scatter(list_of_head_coord[:, 0], list_of_head_coord[:, 1], c=color, label='', s=3)
+ax.plot([barycenter[2], barycenter[2]], [point_with_min_y[1], point_with_max_y[1]], c='gray')
+# ax.scatter(list_of_head_coord[:, 1], list_of_head_coord[:, 2], c=color, label='', s=3)
+ax.scatter(list_of_head_coord[:, 2], list_of_head_coord[:, 1], c=color, label='', s=3)
+
 ax.set_xlabel('X')
 ax.set_ylabel('Y')
 plt.axis('equal')
-plt.xlim(barycenter[0]-1,barycenter[0]+1)
+# plt.xlim(barycenter[0]-1,barycenter[0]+1)
 
 plt.savefig('head_MOCAP_'+file_name+'.png')
 
 # compute ADE
-distances = np.abs(list_of_head_coord[:,0] - barycenter[0])
+distances = np.abs(list_of_head_coord[:,1] - barycenter[1])
 ade = np.mean(distances)
 print("ADE:", ade)
-
-####################################################### PLOT from upper
-fig_head = plt.figure()
-ax = fig_head.add_subplot(111)
-
-num_circles = 3
-outer_radius = 15
-center_x = 0
-center_y = 0
-
-# Define the colors for each area
-colors = [[1.0, 0.6, 0.6], [1.0, 0.8, 0.6], [0.7, 0.9, 0.7]]
-
-# Plot the concentric circles
-for i in range(num_circles):
-    radius = outer_radius * (num_circles - i) / num_circles
-    color_circle = colors[i % len(colors)]  # Cycle through the colors
-    circle = plt.Circle((barycenter[0], barycenter[2]), radius, color=color_circle, fill=True)
-    ax.add_patch(circle)
-
-ax.set_xlim(center_x - outer_radius, center_x + outer_radius)
-ax.set_ylim(center_y - outer_radius, center_y + outer_radius)
-
-ax.scatter(list_of_head_coord[:, 0], list_of_head_coord[:, 2], c=color, label='')
-
-ax.set_xlabel('X')
-ax.set_ylabel('Z')
-plt.axis('equal')
-
-plt.savefig('head_up_MOCAP_'+file_name+'.png')
+# ####################################################### PLOT from upper
+# fig_head = plt.figure()
+# ax = fig_head.add_subplot(111)
+#
+# num_circles = 3
+# outer_radius = 15
+# center_x = 0
+# center_y = 0
+#
+# # Define the colors for each area
+# colors = [[1.0, 0.6, 0.6], [1.0, 0.8, 0.6], [0.7, 0.9, 0.7]]
+#
+# # Plot the concentric circles
+# for i in range(num_circles):
+#     radius = outer_radius * (num_circles - i) / num_circles
+#     color_circle = colors[i % len(colors)]  # Cycle through the colors
+#     circle = plt.Circle((barycenter[0], barycenter[0]), radius, color=color_circle, fill=True)
+#     ax.add_patch(circle)
+#
+# ax.set_xlim(center_x - outer_radius, center_x + outer_radius)
+# ax.set_ylim(center_y - outer_radius, center_y + outer_radius)
+#
+# ax.scatter(list_of_head_coord[:, 0], list_of_head_coord[:, 2], c=color, label='')
+#
+# ax.set_xlabel('X')
+# ax.set_ylabel('Z')
+# plt.axis('equal')
+#
+# plt.savefig('head_up_MOCAP_'+file_name+'.png')

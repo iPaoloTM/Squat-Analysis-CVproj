@@ -12,7 +12,7 @@ import sys
 ##################### ZED
 
 if len(sys.argv) < 2:
-    print("usage: python head_ZED_from_foot.py <FILE>")
+    print("usage: sample")
     exit(0)
 
 file_name = sys.argv[1]
@@ -35,10 +35,7 @@ for joint in skeletons:
         barycenter.append(center)
 
 print(centered_skeletons)
-# Calculate the average of each coordinate
 barycenter = np.mean(np.array(barycenter), axis=0)
-
-
 
 ############## TEMPORAL ALIGNMENT
 pose_index_ = ZED_alignment.main(centered_skeletons)
@@ -47,7 +44,7 @@ pose_index_ = ZED_alignment.main(centered_skeletons)
 index = 27
 list_of_head_coord = []
 for i,skeleton in enumerate(centered_skeletons):
-    if i > pose_index_[0]+200 and i < pose_index_[1]:
+    if i > pose_index_[0] and i < pose_index_[1]:
         list_of_head_coord.append(skeleton[index])
 
 list_of_head_coord = np.array(list_of_head_coord)
@@ -56,19 +53,14 @@ list_of_head_coord = np.array(list_of_head_coord)
 ##################################################### PLOT
 fig_head = plt.figure()
 ax = fig_head.add_subplot(111)
-# ax.set_title("head FROM ZED")
 
 list_of_head_coord -= list_of_head_coord[2]
-# list_of_head_coord += barycenter[0]
-# barycenter -= barycenter[0]
 points = np.array(list_of_head_coord)
 
-# Find the index of the point with the minimum y-coordinate
 min_y_index = np.argmin(points[:, 1])
 point_with_min_y = points[min_y_index]
 print("Point with the minimum y-coordinate:", point_with_min_y)
 
-# Find the index of the point with the maximum y-coordinate
 max_y_index = np.argmax(points[:, 1])
 point_with_max_y = points[max_y_index]
 print("Point with the maximum y-coordinate:", point_with_max_y)
@@ -78,7 +70,6 @@ ax.scatter(list_of_head_coord[:, 2], list_of_head_coord[:, 1], c=color, label=''
 ax.set_xlabel('X')
 ax.set_ylabel('Y')
 plt.axis('equal')
-# plt.xlim(barycenter[0]-1,barycenter[0]+1)
 
 plt.savefig('head_ZED_'+file_name+'.png')
 
@@ -86,33 +77,3 @@ plt.savefig('head_ZED_'+file_name+'.png')
 distances = np.abs(list_of_head_coord[:,1] - barycenter[1])
 ade = np.mean(distances)
 print("ADE:", ade)
-
-####################################################### PLOT from upper
-fig_head = plt.figure()
-ax = fig_head.add_subplot(111)
-
-num_circles = 3
-outer_radius = 15
-center_x = 0
-center_y = 0
-
-# Define the colors for each area
-colors = [[1.0, 0.6, 0.6], [1.0, 0.8, 0.6], [0.7, 0.9, 0.7]]
-# print(barycenter[0], barycenter[1])
-# Plot the concentric circles
-for i in range(num_circles):
-    radius = outer_radius * (num_circles - i) / num_circles
-    color_circle = colors[i % len(colors)]  # Cycle through the colors
-    circle = plt.Circle((barycenter[0], barycenter[1]), radius, color=color_circle, fill=True)
-    ax.add_patch(circle)
-
-ax.set_xlim(center_x - outer_radius, center_x + outer_radius)
-ax.set_ylim(center_y - outer_radius, center_y + outer_radius)
-
-ax.scatter(list_of_head_coord[:, 0], list_of_head_coord[:, 1], c=color, label='')
-
-ax.set_xlabel('X')
-ax.set_ylabel('Z')
-plt.axis('equal')
-
-plt.savefig('head_up_ZED_'+file_name+'.png')

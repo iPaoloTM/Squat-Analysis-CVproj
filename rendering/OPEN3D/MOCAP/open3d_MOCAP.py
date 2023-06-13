@@ -72,6 +72,7 @@ skeleton_joints.lines = o3d.utility.Vector2iVector(body_edges)
 skeleton_joints.colors = o3d.utility.Vector3dVector(colors)
 
 vis = o3d.visualization.Visualizer()
+# vis.get_render_option().background_color = [0, 0, 0]  # RGB values for black
 
 # Customize visualization settings
 opt = vis.get_render_option()

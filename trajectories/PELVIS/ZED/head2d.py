@@ -49,27 +49,27 @@ pose_index_gt, skeletons_gt = ZED_alignment.main('groundTruthZED')
 print("pose_index_gt: ", pose_index_gt)
 # print("skeletons_gt: ", skeletons_gt)
 # print("len: ", len(pose_index_gt))
-############## JOINT pelvis groundTruth
-index = 0
-plot_pelvis_gt = []
+############## JOINT head groundTruth
+index = 4
+plot_head_gt = []
 for i,skeleton in enumerate(skeletons_gt):
     if i > pose_index_gt[1] and i < pose_index_gt[19]: # first squat
         print(i)
-        plot_pelvis_gt.append(skeleton[index])
+        plot_head_gt.append(skeleton[index])
 
-plot_pelvis_gt = np.array(plot_pelvis_gt)
-# print("plot_pelvis_gt: ",plot_pelvis_gt)
-# print("len: ", len(plot_pelvis_gt))
+plot_head_gt = np.array(plot_head_gt)
+# print("plot_head_gt: ",plot_head_gt)
+# print("len: ", len(plot_head_gt))
 
-############## JOINT pelvis salienti
-interesting_pelvis_coor = []
+############## JOINT head salienti
+interesting_head_coor = []
 for i,skeleton in enumerate(pose_index_gt):
     if i > 1 and i < 19:
-        interesting_pelvis_coor.append(skeletons_gt[pose_index_gt[i]][0])
+        interesting_head_coor.append(skeletons_gt[pose_index_gt[i]][0])
 
-interesting_pelvis_coor = np.array(interesting_pelvis_coor)
-print("interesting_pelvis_coor: ",interesting_pelvis_coor)
-print("len: ", len(interesting_pelvis_coor))
+interesting_head_coor = np.array(interesting_head_coor)
+print("interesting_head_coor: ",interesting_head_coor)
+print("len: ", len(interesting_head_coor))
 
 
 
@@ -79,34 +79,34 @@ pose_index_sample = []
 pose_index_sample, skeletons_sample = ZED_alignment.main('sampleZED')
 print("pose_index_sample: ", pose_index_sample)
 
-############## JOINT pelvis  sample
-plot_pelvis_sample = []
+############## JOINT head  sample
+plot_head_sample = []
 for i,skeleton in enumerate(skeletons_sample):
     if i > pose_index_sample[1] and i < pose_index_sample[19]: # first squat
-        plot_pelvis_sample.append(skeleton[index])
+        plot_head_sample.append(skeleton[index])
 
-plot_pelvis_sample = np.array(plot_pelvis_sample)
+plot_head_sample = np.array(plot_head_sample)
 
-############## JOINT pelvis salienti
-interesting_pelvis_coor_sample = []
+############## JOINT head salienti
+interesting_head_coor_sample = []
 for i,skeleton in enumerate(pose_index_sample):
     if i > 1 and i < 19:
-        interesting_pelvis_coor_sample.append(skeletons_sample[pose_index_sample[i]][0])
+        interesting_head_coor_sample.append(skeletons_sample[pose_index_sample[i]][0])
 
-interesting_pelvis_coor_sample = np.array(interesting_pelvis_coor_sample)
+interesting_head_coor_sample = np.array(interesting_head_coor_sample)
 #####################################################
-coordinates_array = np.array(plot_pelvis_sample)
+coordinates_array = np.array(plot_head_sample)
 centroid = np.mean(coordinates_array, axis=0)
 centered_coordinates_gt = coordinates_array - centroid
 
-coordinates_array_2 = np.array(plot_pelvis_gt)
+coordinates_array_2 = np.array(plot_head_gt)
 centroid_2 = np.mean(coordinates_array_2, axis=0)
 centered_coordinates_2 = coordinates_array_2 - centroid_2
 
 ##################################################### PLOT
-fig_pelvis = plt.figure()
-ax = fig_pelvis.add_subplot(111)
-# ax.set_title("pelvis FROM ZED2d")
+fig_head = plt.figure()
+ax = fig_head.add_subplot(111)
+# ax.set_title("head FROM ZED2d")
 
 
 centered_coordinates_gt -= centered_coordinates_gt[0]
@@ -125,6 +125,25 @@ cmap = mcolors.LinearSegmentedColormap.from_list('my_cmap', colors)
 y_values = centered_coordinates_gt[:, 1] # y values for coloring
 y_values_norm = (y_values - np.min(y_values)) / (np.max(y_values) - np.min(y_values))
 norm = mcolors.Normalize(vmin=y_min_gt, vmax=y_max_gt)
+
+
+
+
+points = np.array(centered_coordinates_gt)
+
+# Find the index of the point with the minimum y-coordinate
+min_y_index = np.argmin(points[:, 1])
+point_with_min_y = points[min_y_index]
+print("Point with the minimum y-coordinate:", point_with_min_y)
+
+# Find the index of the point with the maximum y-coordinate
+max_y_index = np.argmax(points[:, 1])
+point_with_max_y = points[max_y_index]
+print("Point with the maximum y-coordinate:", point_with_max_y)
+
+ax.plot([0,0], [point_with_min_y[1], point_with_max_y[1]], c='gray')
+
+
 ax.scatter(centered_coordinates_gt[:, 0], centered_coordinates_gt[:, 1],  c=centered_coordinates_gt[:, 1], cmap=cmap, norm=norm, label='Data', s=3)
 
 
@@ -148,27 +167,27 @@ plt.axis('equal')
 # plt.xlim(-0.5, 0.5)
 # plt.ylim(-0.5, 0.5)
 # plt.show()
-plt.savefig('pelvis_ZED_groundTruthVSsample.png')
+plt.savefig('head_ZED_groundTruthVSsample.png')
 
-fig_pelvis_traj = plt.figure()
-ax = fig_pelvis_traj.add_subplot(111)
-interesting_pelvis_coor -= interesting_pelvis_coor[0]
-interesting_pelvis_coor_sample -= interesting_pelvis_coor_sample[0]
+fig_head_traj = plt.figure()
+ax = fig_head_traj.add_subplot(111)
+interesting_head_coor -= interesting_head_coor[0]
+interesting_head_coor_sample -= interesting_head_coor_sample[0]
 
-ax.scatter(interesting_pelvis_coor[:, 0], interesting_pelvis_coor[:, 1],c='blue', label='GROUDTRUTH', s=3)
-ax.scatter(interesting_pelvis_coor_sample[:, 0], interesting_pelvis_coor_sample[:, 1],c='red', label='GROUDTRUTH', s=3)
+ax.scatter(interesting_head_coor[:, 0], interesting_head_coor[:, 1],c='blue', label='GROUDTRUTH', s=3)
+ax.scatter(interesting_head_coor_sample[:, 0], interesting_head_coor_sample[:, 1],c='red', label='GROUDTRUTH', s=3)
 plt.axis('equal')
 # plt.show()
-plt.savefig('pelvis_ZED_groundTruthVSsample_sampledTraj.png')
+plt.savefig('head_ZED_groundTruthVSsample_sampledTraj.png')
 
 ############### computing ADE average Distance Error between the points
 
 # Example usage
-interesting_pelvis_coor = np.array(interesting_pelvis_coor)
-interesting_pelvis_coor_sample = np.array(interesting_pelvis_coor_sample)
+interesting_head_coor = np.array(interesting_head_coor)
+interesting_head_coor_sample = np.array(interesting_head_coor_sample)
 
-ade = compute_ade(interesting_pelvis_coor, interesting_pelvis_coor_sample)
+ade = compute_ade(interesting_head_coor, interesting_head_coor_sample)
 print("ADE:", ade)
 
-fde = compute_fde(interesting_pelvis_coor, interesting_pelvis_coor_sample)
+fde = compute_fde(interesting_head_coor, interesting_head_coor_sample)
 print("FDE:", fde)

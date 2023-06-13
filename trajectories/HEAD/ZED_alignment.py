@@ -50,18 +50,7 @@ def center_skeleton(skeleton):
 
     return skeleton
 
-def center_skeletonIn(skeleton, center):
 
-    center = center[0]
-
-    # Compute the displacement vector
-    displacement_vector = -center
-
-    for i in range(len(skeleton)):
-        skeleton[i] += displacement_vector
-
-    return skeleton
-    
 def compute_angle(x1,y1,x2,y2,x3,y3,x4,y4):
 
     if (((x2 - x1)!=0) & ((x4 - x3)!=0)):
