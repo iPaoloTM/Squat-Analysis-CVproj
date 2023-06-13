@@ -1,4 +1,4 @@
-# Squat_analysis_CV_project. [ongoing]
+# A Case Study for the Automatic Supervision of Body-Weight Exercises: The Squat
 CV project for the 2023 course - A system to detect the correctness of a squat movement
 
 ![zed_t](https://github.com/iPaoloTM/Squat-Analysis-CVproj/assets/43711362/11ee522f-e720-4be2-9e0d-817997777ad8)
