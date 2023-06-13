@@ -508,8 +508,6 @@ def main(file_name):
 
     local_minima=compute_local_minima(skeletons)
 
-
-
     return(compute_squat_positions(local_minima, pose_state, skeletons, file_name))
 
 

@@ -302,10 +302,10 @@ def main():
         aligned_skeleton1 = mtx1.reshape(34, 3)
         aligned_skeleton2 = mtx2.reshape(34, 3)
 
-        #plot_skeletons(skeleton1,skeleton2,aligned_skeleton1,aligned_skeleton2,i,"ZED Aligned Skeletons")
+        plot_skeletons(skeleton1,skeleton2,aligned_skeleton1,aligned_skeleton2,i,"ZED Aligned Skeletons")
         mpjpe=MPJPE(aligned_skeleton1,aligned_skeleton2)
-        #print("Procrustes disparity:",str(disparity))
-        #print("MPJPE disparity:",str(mpjpe))
+        print("Procrustes disparity:",str(disparity))
+        print("MPJPE disparity:",str(mpjpe))
         tot_disparityP+=disparity
         tot_disparityM+=mpjpe
 
@@ -323,10 +323,10 @@ def main():
         aligned_lower_body_skeleton1 = mtx1.reshape(11, 3)
         aligned_lower_body_skeleton2 = mtx2.reshape(11, 3)
 
-        #plot_lower_skeletons(lower_body_skeleton1,lower_body_skeleton2,aligned_lower_body_skeleton1,aligned_lower_body_skeleton2,i,"ZED Aligned Lower body skeletons")
+        plot_lower_skeletons(lower_body_skeleton1,lower_body_skeleton2,aligned_lower_body_skeleton1,aligned_lower_body_skeleton2,i,"ZED Aligned Lower body skeletons")
         lower_mpjpe=MPJPE(aligned_lower_body_skeleton1,aligned_lower_body_skeleton2)
-        #print("lowerbody procrustes disparity:",str(lower_disparity))
-        #print("LowerMPJPE:",str(lower_mpjpe))
+        print("lowerbody procrustes disparity:",str(lower_disparity))
+        print("LowerMPJPE:",str(lower_mpjpe))
         tot_lower_disparityM+=lower_mpjpe
         tot_lower_disparity+=lower_disparity
 
@@ -338,15 +338,12 @@ def main():
             print(theta_diff)
             tot_theta_diff+=theta_diff
 
-        if squat>20:
-            print("New squat")
 
-
-    #print("Total mean difference of back angle:",tot_theta_diff/21)
-    #print("Total disparity:",tot_disparityP/len(keypositions))
-    #print("Total lower disparity:",tot_lower_disparity/len(keypositions))
-    #print("Total Mean MPJPE disparity:",tot_disparityM/len(keypositions))
-    #print("Total lower Mean MPJPE disparity:",tot_lower_disparityM/len(keypositions))
+    print("Total mean difference of back angle:",tot_theta_diff/21)
+    print("Total disparity:",tot_disparityP/len(keypositions))
+    print("Total lower disparity:",tot_lower_disparity/len(keypositions))
+    print("Total Mean MPJPE disparity:",tot_disparityM/len(keypositions))
+    print("Total lower Mean MPJPE disparity:",tot_lower_disparityM/len(keypositions))
 
 if __name__ == '__main__':
     main()
